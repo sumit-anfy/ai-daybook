@@ -1,0 +1,13 @@
+# OKF Librarian dependencies
+pyyaml>=6,<7       # frontmatter + embedded SPEC/REGISTRY parsing
+fastmcp>=3.4,<4    # the OKF MCP server (server.py); built/tested against 3.4.x
+fastembed<1        # semantic layer (librarian/embed.py): bge-small int8 ONNX;
+                   # brings numpy + onnxruntime (~150-250 MB resident). The code
+                   # fail-softs to pure lexical wherever this is absent — the
+                   # deploy script never pip installs, so install it by hand.
+
+# Dev / testing (optional — tests also run via `python tests/test_store.py`):
+# pytest           # `python -m pytest`
+
+# Phase-1 next (not yet used):
+# gitpython        # deterministic commits from the Librarian

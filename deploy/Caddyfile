@@ -1,0 +1,23 @@
+# Caddy reverse proxy for OKF. The site address is OKF_DOMAIN from Caddy's
+# environment (see .env.example): a (sub)domain pointing at the server.
+# Caddy terminates TLS automatically (Let's Encrypt); services stay on loopback.
+{$OKF_DOMAIN} {
+	# Bare domain -> the human surface. Without this, "/" falls through to the
+	# catch-all below and the MCP server 404s it, since it only serves /mcp and
+	# /.well-known. Both arguments are required: Caddy reads a leading "/" as a
+	# path MATCHER, so a lone `redir /graph` parses as a matcher with no target.
+	# The matcher "/" has no wildcard, so it matches that exact path only and
+	# /.well-known/* still reaches the MCP server for OAuth.
+	# Deliberately a 302, not a 301: browsers cache a permanent redirect
+	# indefinitely, which is hard to undo if the root should ever serve
+	# something else.
+	redir / /graph
+	# graph explorer + markdown editor (login-gated) — the human surface
+	handle /graph* {
+		reverse_proxy 127.0.0.1:8790
+	}
+	# the MCP server (bearer/OAuth) — the Claude surface, incl. /mcp and /.well-known
+	handle {
+		reverse_proxy 127.0.0.1:8765
+	}
+}

@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.okf.lock
+.DS_Store
+.env
+# launch drafts stay local
+launch/

@@ -1,0 +1,22 @@
+# systemd unit for the OKF web app (graph explorer + markdown editor).
+# Install: sudo cp deploy/okf-web.service /etc/systemd/system/ && sudo systemctl enable --now okf-web
+# Secrets (OKF_WEB_PASSWORD, OKF_WEB_SECRET) live in /home/okf/okf-web.env (not in git).
+[Unit]
+Description=OKF web (graph explorer + editor)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=okf
+WorkingDirectory=/home/okf/OKF
+ExecStart=/home/okf/OKF/.venv/bin/python -m uvicorn okf_web.server:app --host 127.0.0.1 --port 8790
+Restart=on-failure
+RestartSec=3
+Environment=OKF_ROOT=/home/okf/OKF-corpus
+Environment=OKF_GIT_COMMIT=1
+Environment=OKF_GIT_PUSH=1
+Environment=OKF_GIT_PUSH_ASYNC=1
+EnvironmentFile=/home/okf/okf-web.env
+
+[Install]
+WantedBy=multi-user.target

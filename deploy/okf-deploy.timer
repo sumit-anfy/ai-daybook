@@ -1,0 +1,12 @@
+[Unit]
+Description=OKF — check GitHub for new code every 2 minutes
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=2min
+# A missed window (box asleep/rebooting) runs on the next start rather than being
+# skipped — a deploy that silently never happens is the failure being fixed here.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

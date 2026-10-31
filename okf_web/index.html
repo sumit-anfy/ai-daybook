@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OKF · knowledge graph</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22ee; --panel-solid:#161b22; --line:#252c37;
+    --text:#e6eaf0; --muted:#8a93a6; --edge:rgba(150,160,180,.16); --edge-hi:rgba(200,210,235,.6);
+    --accent:#7c83ff; --ring:#e6eaf0; --field:#0e1116; --ok:#3fb98a; --bad:#e0567a;
+    --c-p0:#2fb6a3; --c-p1:#e0567a; --c-p2:#e0a02f; --c-p3:#b57edc; --c-p4:#7c83ff; --c-none:#8a93a6;
+    --t-decision:#e0a02f; --t-note:#7c83ff; --t-reference:#2fb6a3; --t-project:#e0567a;
+    --t-playbook:#f0863a; --t-session:#b57bff; --t-log:#6e7686; --t-pattern:#4fb0e0;
+  }
+  :root[data-theme="light"]{
+    --bg:#f4f2ec; --panel:#fffffff2; --panel-solid:#fff; --line:#e2ddd2;
+    --text:#1b2027; --muted:#6b7280; --edge:rgba(60,66,84,.14); --edge-hi:rgba(40,44,60,.5);
+    --accent:#5a61e6; --ring:#1b2027; --field:#fbf9f4; --ok:#0f9d63; --bad:#c8305d;
+    --c-p0:#128b7c; --c-p1:#c8305d; --c-p2:#b97d11; --c-p3:#8b3fd6; --c-p4:#5a61e6; --c-none:#8a93a6;
+    --t-decision:#b97d11; --t-note:#5a61e6; --t-reference:#128b7c; --t-project:#c8305d;
+    --t-playbook:#cf6a22; --t-session:#8a54e0; --t-log:#6b7280; --t-pattern:#2b8fc4;
+  }
+  @media (prefers-color-scheme:light){:root:not([data-theme]){
+    --bg:#f4f2ec; --panel:#fffffff2; --panel-solid:#fff; --line:#e2ddd2;
+    --text:#1b2027; --muted:#6b7280; --edge:rgba(60,66,84,.14); --edge-hi:rgba(40,44,60,.5);
+    --accent:#5a61e6; --ring:#1b2027; --field:#fbf9f4; --ok:#0f9d63; --bad:#c8305d;
+    --c-p0:#128b7c; --c-p1:#c8305d; --c-p2:#b97d11; --c-p3:#8b3fd6; --c-p4:#5a61e6; --c-none:#8a93a6;
+    --t-decision:#b97d11; --t-note:#5a61e6; --t-reference:#128b7c; --t-project:#c8305d;
+    --t-playbook:#cf6a22; --t-session:#8a54e0; --t-log:#6b7280; --t-pattern:#2b8fc4;
+  }}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text);
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .mono{font-family:ui-monospace,"SF Mono","JetBrains Mono",Menlo,monospace}
+  canvas{display:block;width:100%;height:100%;touch-action:none;position:fixed;inset:0}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  input,select,textarea,button{font:inherit}
+  input,select,textarea{background:var(--field);border:1px solid var(--line);color:var(--text);
+    border-radius:8px;padding:8px 10px;outline:none;width:100%}
+  input:focus,select,textarea:focus{border-color:var(--accent)}
+  button{cursor:pointer}
+  button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* ---------- graph top bar ----------
+     This was a 250px floating panel at top-LEFT, sitting on top of the canvas —
+     so it covered the graph, and (being z-index 5 over the list's 4) it covered
+     the list view as well, which is what the owner hit. A bar spanning the top costs
+     the same pixels but takes them from where nothing is drawn: the layout is
+     radial and centred, so the corners are empty and the middle is not. */
+  #topbar{position:fixed;top:0;left:0;right:0;z-index:5;display:none;flex-direction:column;
+    border-radius:0;border-width:0 0 1px 0;padding:9px 14px 8px;gap:7px}
+  #topbar.on{display:flex}
+  .tb1{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .tb1 .grow{flex:1;min-width:0}
+  .count{font-size:11.5px;color:var(--muted);white-space:nowrap} .count b{color:var(--text)}
+  .row{display:flex;gap:8px}
+  .search{position:relative;flex:1}
+  .search input{padding-left:28px;font-size:13px}
+  .search svg{position:absolute;left:8px;top:9px;width:14px;height:14px;stroke:var(--muted);fill:none}
+  .btn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;white-space:nowrap}
+  .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);font-weight:500}
+  .btn.danger{background:transparent;color:var(--bad);border:1px solid var(--bad);font-weight:500;padding:9px 14px}
+  .lbl{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .toggle{display:flex;background:var(--field);border:1px solid var(--line);border-radius:8px;padding:2px}
+  .toggle button{border:0;background:transparent;color:var(--muted);font-size:12px;padding:5px 10px;border-radius:6px;white-space:nowrap}
+  .toggle button[aria-pressed="true"]{background:var(--accent);color:#fff}
+  /* legend runs ACROSS the bar and scrolls, rather than down the side of the canvas */
+  .legend{display:flex;flex-direction:row;align-items:center;gap:3px;overflow-x:auto;
+    scrollbar-width:none;min-width:0}
+  .legend::-webkit-scrollbar{display:none}
+  .chip{display:flex;align-items:center;gap:7px;padding:4px 8px;border-radius:7px;cursor:pointer;
+    font-size:12.5px;border:1px solid transparent;white-space:nowrap;flex:none}
+  .chip:hover{background:var(--field)} .chip[aria-pressed="true"]{border-color:var(--line);background:var(--field)}
+  .chip.off{opacity:.4} .dot{width:10px;height:10px;border-radius:50%;flex:none}
+  .chip .nm{text-transform:capitalize}.chip .ct{color:var(--muted);font-size:11px}
+  .hint{font-size:10.5px;color:var(--muted);line-height:1.5}
+  /* focus row — one line, only as tall as it needs to be */
+  .tb2{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:20px}
+  .tb2 .ft{font-size:12.5px;font-weight:600;max-width:min(46vw,520px);overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .tb2 .toggle button{padding:3px 9px;font-size:11.5px}
+  .tb2 .btn.ghost{padding:4px 10px;font-size:11.5px}
+
+  /* editor drawer */
+  #drawer{position:fixed;top:0;right:0;height:100%;width:420px;max-width:100vw;z-index:8;
+    transform:translateX(105%);transition:transform .22s ease;display:flex;flex-direction:column;
+    border-radius:0;border-left:1px solid var(--line);border-top:0;border-right:0;border-bottom:0}
+  #drawer.on{transform:none}
+  .dhead{padding:16px 18px 12px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:10px}
+  .dhead .dtag{width:10px;height:10px;border-radius:50%;margin-top:5px;flex:none}
+  .dhead .kind{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .dhead .idr{font-size:11px;color:var(--muted);margin-top:3px;word-break:break-all}
+  .dhead .x{margin-left:auto;background:transparent;border:0;color:var(--muted);font-size:20px;width:26px;height:26px;border-radius:6px}
+  .dhead .x:hover{background:var(--field);color:var(--text)}
+  .dbody{flex:1;overflow-y:auto;padding:14px 18px 18px;display:flex;flex-direction:column;gap:13px}
+  .fld{display:flex;flex-direction:column;gap:5px}
+  .fld textarea{resize:vertical}
+  .fld textarea.body{min-height:min(46vh,420px);font-family:ui-monospace,Menlo,monospace;font-size:12.5px;line-height:1.55}
+  .frow{display:flex;gap:10px}.frow>*{flex:1}
+  .chkrow{display:flex;align-items:center;gap:8px}.chkrow input{width:auto}
+  .rel{display:flex;flex-direction:column;gap:2px}
+  .rel a{font-size:12.5px;color:var(--text);text-decoration:none;padding:5px 7px;border-radius:6px;display:flex;gap:8px;align-items:center;cursor:pointer}
+  .rel a:hover{background:var(--field)}.rel a .dot{width:8px;height:8px}
+  .dfoot{padding:12px 18px;border-top:1px solid var(--line);display:flex;align-items:center;gap:12px}
+  .dfoot .btn{padding:9px 18px}
+  .status{font-size:12px;flex:1}.status.ok{color:var(--ok)}.status.bad{color:var(--bad)}
+
+  /* overlays */
+  .overlay{position:fixed;inset:0;z-index:20;background:rgba(6,8,12,.72);backdrop-filter:blur(6px);
+    display:none;align-items:center;justify-content:center;padding:20px}
+  .overlay.on{display:flex}
+  .card{width:340px;max-width:100%;padding:24px}
+  .card h1{margin:0 0 4px;font-size:19px;letter-spacing:.08em}
+  .card p{margin:0 0 16px;color:var(--muted);font-size:13px}
+  .card .fld{margin-bottom:12px}
+  .modal{width:440px;max-width:100%;padding:20px;max-height:88vh;overflow-y:auto}
+  .modal h2{margin:0 0 14px;font-size:16px}
+  #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(20px);z-index:30;
+    padding:10px 16px;border-radius:9px;font-size:13px;opacity:0;transition:.2s;pointer-events:none;
+    background:var(--panel-solid);border:1px solid var(--line);box-shadow:0 8px 30px rgba(0,0,0,.4)}
+  #toast.on{opacity:1;transform:translateX(-50%)}
+  #tip{position:fixed;pointer-events:none;z-index:9;background:var(--panel-solid);border:1px solid var(--line);
+    border-radius:7px;padding:6px 9px;font-size:12px;max-width:280px;line-height:1.35;display:none}
+  #tip .tt{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+  /* ---------- list view (the default landing surface) ----------
+     At 302 nodes a force-directed canvas is a poor way to FIND anything — it is
+     good once you know where you are going. So the list leads and the graph is
+     the second view, which is the inverse of how this app started. */
+  #list{position:fixed;inset:0;z-index:4;background:var(--bg);display:none;
+    flex-direction:column;overflow:hidden}
+  #list.on{display:flex}
+  .lbar{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:12px 16px;
+    border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .lbar .search{flex:1;min-width:220px;max-width:520px}
+  .lsort{display:flex;gap:2px;background:var(--field);border:1px solid var(--line);
+    border-radius:8px;padding:2px}
+  .lsort button{background:none;border:0;color:var(--muted);padding:5px 10px;border-radius:6px;
+    font-size:12px;cursor:pointer}
+  .lsort button[aria-pressed="true"]{background:var(--panel);color:var(--text)}
+  .lfilters{flex:0 0 auto;display:flex;gap:6px;padding:9px 16px;overflow-x:auto;
+    border-bottom:1px solid var(--line);scrollbar-width:none}
+  .lfilters::-webkit-scrollbar{display:none}
+  .lrows{flex:1;overflow-y:auto;padding:4px 0 40px}
+  .lrow{display:flex;gap:12px;padding:11px 16px;cursor:pointer;border-bottom:1px solid var(--line);
+    align-items:flex-start}
+  .lrow:hover{background:var(--field)}
+  .lrow .bar{flex:0 0 3px;align-self:stretch;border-radius:2px;min-height:34px}
+  .lrow .mid{flex:1;min-width:0}
+  .lrow .t{font-size:13.5px;font-weight:600;line-height:1.35;margin-bottom:2px}
+  .lrow .s{font-size:12px;color:var(--muted);line-height:1.45;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .lrow .meta{display:flex;gap:7px;align-items:center;margin-top:5px;flex-wrap:wrap}
+  .lrow .pill{font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);
+    border:1px solid var(--line);border-radius:99px;padding:1px 7px}
+  .lrow .when{flex:0 0 auto;font-size:11px;color:var(--muted);padding-top:2px}
+  .lrow.dim .t{color:var(--muted);text-decoration:line-through;text-decoration-thickness:1px}
+  .lempty{padding:44px 16px;text-align:center;color:var(--muted);font-size:13px}
+  .vtoggle{display:flex;gap:2px;background:var(--field);border:1px solid var(--line);
+    border-radius:8px;padding:2px}
+  .vtoggle button{background:none;border:0;color:var(--muted);padding:5px 11px;border-radius:6px;
+    font-size:12px;cursor:pointer}
+  .vtoggle button[aria-pressed="true"]{background:var(--panel);color:var(--text)}
+  @media (max-width:560px){#drawer{width:100vw}
+    #topbar{padding:8px 10px}.tb1 .count{display:none}
+    /* the legend is the one part that cannot shrink usefully — squeezed between
+       the toggles it collapses to a single dot, so it gets its own row */
+    .tb1 .legend{order:5;flex-basis:100%;flex-grow:0}
+    .lrow .when{display:none}}
+  /* Code tab (graphify, 2026-08-08): hosted repo graphs in an iframe — the
+     pages are self-contained graphify exports pushed from the Mac, so the
+     pane only frames them. Same layer model as the list (z-index 4). */
+  #code{position:fixed;inset:0;z-index:4;background:var(--bg);display:none;flex-direction:column}
+  #code.on{display:flex}
+  #code .codebar{display:flex;gap:12px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
+  #code select{background:var(--panel-solid);color:inherit;border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+  #codeFrame{flex:1;border:0;width:100%}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+
+<div id="list" class="on">
+  <div class="lbar">
+    <b class="mono" style="font-size:14px">OKF</b>
+    <div class="search" style="position:relative">
+      <svg viewBox="0 0 24 24" stroke-width="2" style="position:absolute;left:8px;top:9px;width:14px;height:14px;stroke:var(--muted);fill:none"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="lq" type="text" placeholder="Search title, summary, tags…" autocomplete="off" spellcheck="false" style="padding-left:28px;width:100%">
+    </div>
+    <div class="lsort" role="group" aria-label="Sort">
+      <button id="sRel" aria-pressed="false" title="Best match — needs a search">Relevance</button>
+      <button id="sUpd" aria-pressed="true" title="Most recently updated first">Recent</button>
+      <button id="sTitle" aria-pressed="false">A–Z</button>
+    </div>
+    <div class="vtoggle" role="group" aria-label="View">
+      <button id="vList" aria-pressed="true">List</button>
+      <button id="vGraph" aria-pressed="false">Graph</button>
+      <button id="vCode" aria-pressed="false" title="Code graphs (graphify) — pushed from the repos">Code</button>
+    </div>
+    <button class="btn" id="lNew" title="New node">＋</button>
+  </div>
+  <div class="lfilters" id="lFilters"></div>
+  <div class="lrows" id="lRows"></div>
+</div>
+
+<div id="code">
+  <div class="codebar">
+    <b class="mono" style="font-size:14px">Code graphs</b>
+    <select id="codeSel" aria-label="Repository"></select>
+    <span class="count" id="codeUpd"></span>
+    <div class="vtoggle" role="group" aria-label="View" style="margin-left:auto">
+      <button id="cList" aria-pressed="false">List</button>
+      <button id="cGraph" aria-pressed="false">Graph</button>
+      <button id="cCode" aria-pressed="true">Code</button>
+    </div>
+  </div>
+  <iframe id="codeFrame" title="code graph"></iframe>
+</div>
+
+<div id="topbar" class="panel">
+  <div class="tb1">
+    <b class="mono" style="font-size:14px">OKF</b>
+    <div class="vtoggle" role="group" aria-label="View"><button id="gList" aria-pressed="false">List</button><button id="gGraph" aria-pressed="true">Graph</button><button id="gCode" aria-pressed="false">Code</button></div>
+    <span class="count"><b id="nc">…</b> nodes · <b id="ec">…</b> links</span>
+    <div class="legend grow" id="legend"></div>
+    <div class="toggle" role="group" aria-label="Colour by"><button id="mProject" aria-pressed="true">Home</button><button id="mType" aria-pressed="false">Type</button></div>
+    <button class="btn" id="newBtn" title="New node">＋</button>
+  </div>
+  <div id="focusBar" class="tb2"></div>
+</div>
+
+<div id="drawer" class="panel">
+  <div class="dhead">
+    <span class="dtag" id="eTag"></span>
+    <div style="min-width:0"><div class="kind" id="eKind"></div><div class="idr mono" id="eId"></div></div>
+    <button class="x" id="eClose" aria-label="Close">×</button>
+  </div>
+  <div class="dbody">
+    <div class="fld"><span class="lbl">Title</span><input id="eTitle"></div>
+    <div class="fld"><span class="lbl">Summary</span><textarea id="eSummary" rows="2"></textarea></div>
+    <div class="frow">
+      <div class="fld"><span class="lbl">Home</span><select id="eProject"></select></div>
+      <div class="fld"><span class="lbl">Status</span><select id="eStatus"></select></div>
+    </div>
+    <div class="frow">
+      <div class="fld"><span class="lbl">Tags (comma-sep)</span><input id="eTags"></div>
+      <div class="fld" style="flex:0 0 90px"><span class="lbl">Canonical</span><div class="chkrow" style="height:38px"><input type="checkbox" id="eCanon"><span id="eCanonL" style="font-size:12px;color:var(--muted)">no</span></div></div>
+    </div>
+    <div class="fld"><span class="lbl">Body (markdown)</span><textarea id="eBody" class="body" spellcheck="false"></textarea></div>
+    <div class="fld"><span class="lbl">Connected</span><div class="rel" id="eRel"></div></div>
+  </div>
+  <div class="dfoot">
+    <button class="btn danger" id="eDelete">Delete</button>
+    <span class="status" id="eMsg"></span>
+    <button class="btn" id="eSave">Save</button>
+  </div>
+</div>
+
+<div class="overlay on" id="loginO">
+  <form class="card panel" id="loginForm" autocomplete="on">
+    <h1 class="mono">OKF</h1><p>Sign in to view and edit your knowledge graph.</p>
+    <div class="fld"><input id="pw" type="password" name="password" placeholder="Password" autocomplete="current-password"></div>
+    <button class="btn" id="loginBtn" type="submit" style="width:100%">Enter</button>
+    <div class="status bad" id="loginMsg" style="margin-top:10px;text-align:center"></div>
+  </form>
+</div>
+
+<div class="overlay" id="newO">
+  <div class="modal panel">
+    <h2>New node</h2>
+    <div class="frow"><div class="fld"><span class="lbl">Type</span><select id="nType"></select></div>
+      <div class="fld"><span class="lbl">Home</span><select id="nProject"></select></div></div>
+    <div class="fld" style="margin-top:12px"><span class="lbl">Title</span><input id="nTitle"></div>
+    <div class="fld" style="margin-top:12px"><span class="lbl">Summary</span><textarea id="nSummary" rows="2"></textarea></div>
+    <div class="fld" style="margin-top:12px"><span class="lbl">Body</span><textarea id="nBody" rows="6" class="mono" style="font-size:12.5px"></textarea></div>
+    <div class="row" style="margin-top:16px;justify-content:flex-end">
+      <button class="btn ghost" id="nCancel">Cancel</button><button class="btn" id="nCreate">Create</button>
+    </div>
+    <div class="status bad" id="nMsg" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<div id="tip"></div>
+<div id="toast"></div>
+
+<script>
+// vocabulary is NOT hardcoded — it is loaded live from the corpus registry in
+// reload() (via /graph/api/graph). These are just pre-load fallbacks.
+let PROJECTS=['—'];
+let TYPES=[];
+const STATUSES=['active','parked','retired'];
+// Project colours follow the registry's order (PROJECT_REGISTRY), so a corpus
+// with its own homes needs no edit here; homes past the palette get a hash hue.
+const PALETTE=['--c-p0','--c-p1','--c-p2','--c-p3','--c-p4'];
+const projVar=new Proxy({},{get:(_,p)=>{const i=PROJECTS.indexOf(p);return i>=0&&i<PALETTE.length?PALETTE[i]:undefined;}});
+const typeVar={decision:'--t-decision',note:'--t-note',reference:'--t-reference',project:'--t-project',playbook:'--t-playbook',session:'--t-session',log:'--t-log',pattern:'--t-pattern'};
+let mode='project',NODES=[],EDGES=[],byId=new Map();
+const $=id=>document.getElementById(id);
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// named colors are a nicety; any registry project without one gets a stable
+// derived hue, so a new project never falls back to grey or breaks.
+function projColor(p){const v=projVar[p];if(v){const c=css(v);if(c)return c;}if(!p||p==='—')return css('--c-none');let h=0;for(let i=0;i<p.length;i++)h=(h*31+p.charCodeAt(i))>>>0;return `hsl(${h%360} 55% 52%)`;}
+function nodeColor(n){return mode==='project'?projColor(n.project):css(typeVar[n.type]||'--t-note');}
+async function api(path,opts){const r=await fetch(path,Object.assign({credentials:'same-origin',headers:{'Content-Type':'application/json'}},opts));return r;}
+function toast(msg,bad){const t=$('toast');t.textContent=msg;t.style.borderColor=bad?css('--bad'):css('--line');t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2600);}
+
+// ---------- canvas graph ----------
+const cv=$('cv'),ctx=cv.getContext('2d');
+let cam={x:0,y:0},zoom=1,W=0,H=0,DPR=1,alpha=1,started=false;
+let sel=null,hover=null,drag=null,panning=false,last=null,filterProj=null;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function buildEdges(){const es=new Set();EDGES=[];byId=new Map();NODES.forEach(n=>byId.set(n.id,n));
+  for(const n of NODES){n.deg=0;n.x=n.x||0;n.y=n.y||0;n.vx=0;n.vy=0;}
+  for(const n of NODES)for(const r of(n.relates_to||[])){if(!byId.has(r))continue;const k=n.id<r?n.id+r:r+n.id;if(es.has(k))continue;es.add(k);EDGES.push({a:n,b:byId.get(r)});}
+  for(const e of EDGES){e.a.deg++;e.b.deg++;}
+  $('nc').textContent=NODES.length;$('ec').textContent=EDGES.length;}
+function initPos(){NODES.forEach((n,i)=>{const a=i/NODES.length*6.283,rr=120+((i*53)%170);n.x=Math.cos(a)*rr;n.y=Math.sin(a)*rr;n.vx=0;n.vy=0;});}
+function tick(){const REP=5200,REST=64,SP=.035,GRAV=.021,DA=.86;
+  // scoped to the VISIBLE set: repulsion is O(n^2), so a focused neighbourhood
+  // actually settles where 302 nodes never stop jostling
+  const NS=vNodes(),ES=vEdges();
+  for(const p of NS){p.ax=0;p.ay=0;}
+  for(let i=0;i<NS.length;i++){const p=NS[i];for(let j=i+1;j<NS.length;j++){const q=NS[j];let dx=p.x-q.x,dy=p.y-q.y,d2=dx*dx+dy*dy;if(d2<1)d2=1;const f=REP/d2,d=Math.sqrt(d2),fx=dx/d*f,fy=dy/d*f;p.ax+=fx;p.ay+=fy;q.ax-=fx;q.ay-=fy;}}
+  for(const e of ES){let dx=e.b.x-e.a.x,dy=e.b.y-e.a.y,d=Math.hypot(dx,dy)||1,f=(d-REST)*SP,fx=dx/d*f,fy=dy/d*f;e.a.ax+=fx;e.a.ay+=fy;e.b.ax-=fx;e.b.ay-=fy;}
+  for(const p of NS){p.ax-=p.x*GRAV;p.ay-=p.y*GRAV;if(p===drag)continue;p.vx=(p.vx+p.ax*alpha)*DA;p.vy=(p.vy+p.ay*alpha)*DA;p.x+=p.vx;p.y+=p.vy;}
+  alpha=Math.max(alpha*.97,reduce?0:.04);}
+const w2s=(x,y)=>[(x-cam.x)*zoom+W/2,(y-cam.y)*zoom+H/2];
+const s2w=(x,y)=>[(x-W/2)/zoom+cam.x,(y-H/2)/zoom+cam.y];
+const radius=n=>4.5+Math.sqrt(n.deg||0)*2.4;
+function pick(sx,sy){const[wx,wy]=s2w(sx,sy);let b=null,bd=1e9;for(const n of vNodes()){const d=Math.hypot(n.x-wx,n.y-wy),r=radius(n)+7/zoom;if(d<r&&d<bd){bd=d;b=n;}}return b;}
+function neigh(n){const s=new Set();for(const e of EDGES){if(e.a===n)s.add(e.b);if(e.b===n)s.add(e.a);}return s;}
+
+// ---------- focus: the declutter ----------
+// 302 nodes force-directed is a hairball however it is styled — the clutter is
+// the node COUNT, not the paint. So the graph gets a local mode: a focused node
+// plus everything within `depth` hops, which is what makes Obsidian's local graph
+// readable. Two things follow from a small set that are impossible at 302:
+// the physics actually settles (repulsion is O(n²)), and LABELS can be drawn.
+let focusId=null, depth=1;
+let VIS=null, VISE=null;          // visible nodes / edges, recomputed on change
+
+function recomputeVis(){
+  if(!focusId||!byId.has(focusId)){VIS=null;VISE=null;return;}
+  const seen=new Set([focusId]);let frontier=[byId.get(focusId)];
+  for(let d=0;d<depth;d++){const nxt=[];
+    for(const n of frontier)for(const m of neigh(n))if(!seen.has(m.id)){seen.add(m.id);nxt.push(m);}
+    frontier=nxt;if(!frontier.length)break;}
+  VIS=NODES.filter(n=>seen.has(n.id));
+  VISE=EDGES.filter(e=>seen.has(e.a.id)&&seen.has(e.b.id));}
+
+const vNodes=()=>VIS||NODES;
+const vEdges=()=>VISE||EDGES;
+
+function setFocus(id,d){
+  focusId=id;if(d!=null)depth=d;
+  recomputeVis();
+  // reseed positions so a freshly focused neighbourhood opens out instead of
+  // inheriting wherever those nodes happened to sit in the global layout
+  if(VIS){const c=byId.get(focusId);c.x=0;c.y=0;c.vx=0;c.vy=0;
+    VIS.forEach((n,i)=>{if(n===c)return;const a=i/VIS.length*6.283,rr=90+((i*37)%70);
+      n.x=Math.cos(a)*rr;n.y=Math.sin(a)*rr;n.vx=0;n.vy=0;});
+    for(let i=0;i<160;i++)tick();}
+  alpha=Math.max(alpha,.6);buildFocusBar();resize();fit();}
+
+function clearFocus(){focusId=null;VIS=null;VISE=null;initPos();
+  for(let i=0;i<220;i++)tick();alpha=.5;buildFocusBar();fit();}
+
+function buildFocusBar(){const el=$('focusBar');if(!el)return;
+  if(!focusId||!byId.has(focusId)){el.innerHTML='<span class="hint">Showing all '+NODES.length
+    +' nodes — click one, or open it from the list, to see just its neighbourhood.'
+    +' Drag to pan · scroll to zoom.</span>';return;}
+  const n=byId.get(focusId);
+  el.innerHTML='<span class="lbl">Focused</span><span class="ft">'+esc(n.title)+'</span>'
+    +'<span class="lbl">Depth</span><div class="toggle" role="group">'
+    +[1,2,3].map(d=>'<button data-d="'+d+'" aria-pressed="'+(depth===d)+'">'+d+'</button>').join('')
+    +'</div><button class="btn ghost" id="showAll">Show all</button>'
+    +'<span class="hint">'+vNodes().length+' of '+NODES.length+' shown</span>';
+  el.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>setFocus(focusId,+b.dataset.d));
+  $('showAll').onclick=clearFocus;}
+
+function activeSet(){if(sel){const s=neigh(sel);s.add(sel);return s;}if(filterProj){const s=new Set();for(const n of vNodes())if(n.project===filterProj)s.add(n);return s;}return null;}
+function draw(){const act=activeSet(),edgeC=css('--edge'),edgeHi=css('--edge-hi'),ringC=css('--ring'),bg=css('--bg'),selN=sel?neigh(sel):null;
+  ctx.setTransform(DPR,0,0,DPR,0,0);ctx.clearRect(0,0,W,H);ctx.lineWidth=1;
+  for(const e of vEdges()){const on=(!act||(act.has(e.a)&&act.has(e.b))),hot=sel&&(e.a===sel||e.b===sel);
+    ctx.strokeStyle=hot?edgeHi:edgeC;ctx.globalAlpha=on||hot?1:.25;
+    const[x1,y1]=w2s(e.a.x,e.a.y),[x2,y2]=w2s(e.b.x,e.b.y);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();}
+  ctx.globalAlpha=1;
+  for(const n of vNodes()){const[x,y]=w2s(n.x,n.y),r=radius(n)*zoom,on=!act||act.has(n),col=nodeColor(n);ctx.globalAlpha=on?1:.22;
+    if(n.status==='retired'||n.status==='superseded'){ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fillStyle=bg;ctx.fill();ctx.lineWidth=1.6;ctx.strokeStyle=col;ctx.setLineDash([2.5,2.5]);ctx.stroke();ctx.setLineDash([]);}
+    else{ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fillStyle=col;ctx.fill();if(n.canonical){ctx.lineWidth=2;ctx.strokeStyle=ringC;ctx.globalAlpha=on?.9:.2;ctx.stroke();ctx.globalAlpha=on?1:.22;}}
+    if(n===hover||n===sel){ctx.beginPath();ctx.arc(x,y,r+3.5,0,7);ctx.lineWidth=2;ctx.strokeStyle=col;ctx.stroke();}ctx.globalAlpha=1;}
+  // Labels are the payoff of focusing: at 302 nodes they are unreadable noise, at
+  // a neighbourhood they are the whole point — you can see WHAT is around a node
+  // without hovering each one. 45 is where they start to collide at normal zoom.
+  const NS2=vNodes();
+  if(NS2.length<=45){ctx.font='11.5px ui-sans-serif,system-ui,sans-serif';ctx.textBaseline='middle';
+    for(const n of NS2){if(n===hover)continue;const[x,y]=w2s(n.x,n.y),r=radius(n)*zoom;
+      let t=n.title;if(t.length>34)t=t.slice(0,33)+'…';
+      ctx.globalAlpha=(n.id===focusId)?1:.72;
+      ctx.lineWidth=3;ctx.strokeStyle=bg;ctx.strokeText(t,x+r+5,y);
+      ctx.fillStyle=(n.id===focusId)?css('--text'):css('--muted');ctx.fillText(t,x+r+5,y);}
+    ctx.globalAlpha=1;}
+  if(hover){const n=hover,[x,y]=w2s(n.x,n.y),r=radius(n)*zoom;let t=n.title;if(t.length>40)t=t.slice(0,39)+'…';
+    ctx.font='12px ui-sans-serif,system-ui,sans-serif';ctx.textBaseline='middle';ctx.globalAlpha=1;
+    ctx.lineWidth=3.5;ctx.strokeStyle=bg;ctx.strokeText(t,x+r+6,y);ctx.fillStyle=css('--text');ctx.fillText(t,x+r+6,y);}
+}
+function frame(){if(alpha>.041||panning||drag)tick();draw();requestAnimationFrame(frame);}
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;cv.style.width=W+'px';cv.style.height=H+'px';}
+addEventListener('resize',resize);
+// Height of the top bar, so the graph is centred in the space BELOW it rather
+// than in the window (the old 360px slack was allowing for the left panel).
+const barH=()=>{const b=$('topbar');return b&&b.classList.contains('on')?b.offsetHeight:0;};
+function fit(){let a=1e9,b=1e9,c=-1e9,d=-1e9;
+  for(const n of vNodes()){a=Math.min(a,n.x);b=Math.min(b,n.y);c=Math.max(c,n.x);d=Math.max(d,n.y);}
+  const th=barH();
+  zoom=Math.max(.35,Math.min((W-90)/(c-a+140),(H-th-90)/(d-b+140),1.4));
+  cam.x=(a+c)/2;cam.y=(b+d)/2-(th/2)/zoom;}
+
+// pointer
+let downXY=null,moved=false;
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);downXY=[e.clientX,e.clientY];moved=false;last=[e.clientX,e.clientY];const n=pick(e.clientX,e.clientY);if(n)drag=n;else panning=true;});
+cv.addEventListener('pointermove',e=>{if(downXY&&Math.hypot(e.clientX-downXY[0],e.clientY-downXY[1])>4)moved=true;
+  if(drag){const[wx,wy]=s2w(e.clientX,e.clientY);drag.x=wx;drag.y=wy;drag.vx=0;drag.vy=0;alpha=Math.max(alpha,.3);}
+  else if(panning){cam.x-=(e.clientX-last[0])/zoom;cam.y-=(e.clientY-last[1])/zoom;last=[e.clientX,e.clientY];}
+  else{const n=pick(e.clientX,e.clientY);hover=n;cv.style.cursor=n?'pointer':'grab';const tip=$('tip');
+    if(n){tip.style.display='block';tip.innerHTML='<div class="tt">'+n.type+' · '+n.project+'</div>'+esc(n.title);tip.style.left=Math.min(e.clientX+14,innerWidth-tip.offsetWidth-8)+'px';tip.style.top=(e.clientY+16)+'px';}else tip.style.display='none';}});
+function endP(){if(drag&&!moved){setFocus(drag.id,depth);openNode(drag.id);}else if(panning&&!moved)closeDrawer();drag=null;panning=false;downXY=null;}
+cv.addEventListener('pointerup',endP);cv.addEventListener('pointercancel',endP);
+cv.addEventListener('pointerleave',()=>{$('tip').style.display='none';hover=null;});
+cv.addEventListener('wheel',e=>{e.preventDefault();const[wx,wy]=s2w(e.clientX,e.clientY);zoom*=Math.exp(-e.deltaY*.0016);zoom=Math.max(.2,Math.min(zoom,4));cam.x=wx-(e.clientX-W/2)/zoom;cam.y=wy-(e.clientY-H/2)/zoom;},{passive:false});
+
+// ---------- legend / controls ----------
+function counts(key){const m={};for(const n of NODES)m[n[key]]=(m[n[key]]||0)+1;return m;}
+function buildLegend(){const leg=$('legend');leg.innerHTML='';const keys=mode==='project'?PROJECTS:TYPES;const cnt=counts(mode==='project'?'project':'type');
+  for(const k of keys){if(!cnt[k])continue;const c=mode==='project'?projColor(k):css(typeVar[k]||'--t-note');
+    const chip=document.createElement('div');chip.className='chip';chip.tabIndex=0;chip.setAttribute('role','button');chip.setAttribute('aria-pressed',filterProj===k?'true':'false');
+    chip.innerHTML='<span class="dot" style="background:'+c+'"></span><span class="nm">'+k+'</span><span class="ct">'+cnt[k]+'</span>';
+    const act=()=>{if(mode!=='project')return;filterProj=filterProj===k?null:k;sel=null;buildLegend();};
+    chip.onclick=act;chip.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();act();}};
+    if(filterProj&&filterProj!==k&&mode==='project')chip.classList.add('off');leg.appendChild(chip);}}
+function setMode(m){mode=m;$('mProject').setAttribute('aria-pressed',m==='project');$('mType').setAttribute('aria-pressed',m==='type');if(m==='type')filterProj=null;buildLegend();}
+$('mProject').onclick=()=>setMode('project');$('mType').onclick=()=>setMode('type');
+// The graph has NO search box of its own. It had one, it stopped filtering when
+// focus mode replaced the query branch of activeSet(), and it was then reduced
+// to forwarding keystrokes to the list. Two search boxes for one index, one of
+// which only pretends, is worse than one box in the view that does the finding —
+// so searching lives in the list, and the List/Graph toggle is right beside it.
+
+// ---------- editor drawer ----------
+let editing=null;
+// guard: if the node's real value isn't in the vocab list, show it anyway (as
+// the first option, selected) — never silently swap it to option[0] on save.
+function fillSelect(el,arr,val){el.innerHTML='';const opts=(val!=null&&val!==''&&!arr.includes(val))?[val,...arr]:arr;for(const o of opts){const op=document.createElement('option');op.value=o;op.textContent=o;if(o===val)op.selected=true;el.appendChild(op);}}
+async function openNode(id){const r=await api('/graph/api/node/'+id);if(!r.ok){toast('Could not load node',true);return;}
+  const d=await r.json();const fm=d.frontmatter;editing={id,fm,body:d.body};
+  const meta=byId.get(id);
+  $('eTag').style.background=meta?nodeColor(meta):css('--muted');
+  $('eKind').textContent=(fm.type||'')+' · '+(fm.project||'—');$('eId').textContent=id;
+  $('eTitle').value=fm.title||'';$('eSummary').value=fm.summary||'';
+  fillSelect($('eProject'),PROJECTS,fm.project||'—');
+  const st=[...new Set([...STATUSES,fm.status])];fillSelect($('eStatus'),st,fm.status);
+  $('eTags').value=(fm.tags||[]).join(', ');
+  $('eCanon').checked=!!fm.canonical;$('eCanonL').textContent=fm.canonical?'yes':'no';
+  $('eBody').value=d.body||'';$('eMsg').textContent='';$('eMsg').className='status';
+  const rel=$('eRel');rel.innerHTML='';const ids=(fm.relates_to||[]);
+  if(!ids.length)rel.innerHTML='<span style="font-size:12px;color:var(--muted)">No links</span>';
+  for(const rid of ids){const m=byId.get(rid);const a=document.createElement('a');
+    a.innerHTML='<span class="dot" style="background:'+(m?nodeColor(m):css('--muted'))+'"></span>'+esc(m?m.title:rid);
+    if(m)a.onclick=()=>{openNode(rid);sel=m;cam.x=m.x;cam.y=m.y;alpha=Math.max(alpha,.12);};rel.appendChild(a);}
+  $('drawer').classList.add('on');sel=meta||sel;
+}
+$('eCanon').addEventListener('change',e=>$('eCanonL').textContent=e.target.checked?'yes':'no');
+function closeDrawer(){$('drawer').classList.remove('on');editing=null;sel=null;}
+$('eClose').onclick=closeDrawer;
+$('eSave').onclick=async()=>{if(!editing)return;const btn=$('eSave');btn.disabled=true;const msg=$('eMsg');msg.className='status';msg.textContent='Saving…';
+  const payload={body:$('eBody').value,title:$('eTitle').value.trim(),summary:$('eSummary').value.trim(),
+    project:$('eProject').value,status:$('eStatus').value,canonical:$('eCanon').checked,
+    tags:$('eTags').value.split(',').map(s=>s.trim()).filter(Boolean)};
+  const r=await api('/graph/api/node/'+editing.id,{method:'POST',body:JSON.stringify(payload)});const d=await r.json();btn.disabled=false;
+  if(!r.ok||!d.ok){msg.className='status bad';msg.textContent=d.error||'Save failed';return;}
+  // reflect in graph
+  const n=byId.get(editing.id);if(n){n.title=payload.title;n.project=payload.project;n.status=payload.status;n.canonical=payload.canonical;}
+  buildLegend();
+  if(d.errors&&d.errors.length){msg.className='status bad';msg.textContent='Saved, but corpus has '+d.errors.length+' validation error(s).';toast('Saved with warnings',true);}
+  else{msg.className='status ok';msg.textContent='Saved'+(d.pushed?' · pushed':d.committed?' · committed':'');toast('Saved');}
+};
+$('eDelete').onclick=async()=>{if(!editing)return;
+  if(!confirm('Delete “'+(editing.fm.title||editing.id)+'”?\n\nThe node is removed from the graph and any links to it are cleaned up. Git keeps the history, so it can be recovered.'))return;
+  const msg=$('eMsg');msg.className='status';msg.textContent='Deleting…';
+  const r=await api('/graph/api/node/'+editing.id,{method:'DELETE'});const d=await r.json().catch(()=>({}));
+  if(!r.ok||!d.ok){msg.className='status bad';msg.textContent=d.error||'Delete failed';return;}
+  toast('Deleted'+(d.cleaned_refs?' · cleaned '+d.cleaned_refs+' link(s)':''));closeDrawer();await reload();
+};
+
+// ---------- new node ----------
+$('newBtn').onclick=()=>{fillSelect($('nType'),TYPES,'note');fillSelect($('nProject'),PROJECTS,PROJECTS[0]);$('nTitle').value='';$('nSummary').value='';$('nBody').value='';$('nMsg').textContent='';$('newO').classList.add('on');$('nTitle').focus();};
+$('nCancel').onclick=()=>$('newO').classList.remove('on');
+$('newO').addEventListener('click',e=>{if(e.target===$('newO'))$('newO').classList.remove('on');});
+$('nCreate').onclick=async()=>{const msg=$('nMsg');msg.textContent='';const payload={type:$('nType').value,title:$('nTitle').value.trim(),project:$('nProject').value,summary:$('nSummary').value.trim(),body:$('nBody').value};
+  if(!payload.title){msg.textContent='Title is required.';return;}
+  const r=await api('/graph/api/node',{method:'POST',body:JSON.stringify(payload)});const d=await r.json();
+  if(!r.ok||!d.ok){msg.textContent=d.error||'Create failed';return;}
+  $('newO').classList.remove('on');toast('Created'+(d.warnings&&d.warnings.length?' (with warnings)':''));await reload();openNode(d.id);};
+
+// The "Audit & suggest links" panel used to live here. Removed 2026-08-03: the
+// weekly audit is where the owner reviews corpus health and link suggestions, and a
+// second entry point to the same engine is a second place to remember to look.
+// The engine itself (librarian/audit.py) and its API routes are untouched — the
+// weekly digest calls it directly, not through this page.
+
+// ---------- list view ----------
+// The default surface. `sort` is 'upd' | 'title' | 'rel'; relevance only exists
+// while a search is live, and a search AUTO-SELECTS it — a ranked result list
+// re-sorted alphabetically throws away the ranking, which is the whole point.
+let VIEW='list', lq='', sort='upd', lProj=null, lType=null, ranked=null, seq=0;
+// ONE normaliser for the search query, applied on every side of every
+// comparison and on every request. Until 2026-09-12 the local state was
+// lowercased while the ranked result kept the typed case, so the equality
+// check below (`ranked.q===lq`) failed for any query with a capital: "cap
+// table" showed the ranked union, "Cap Table" silently fell back to the local
+// substring pass. Found by the fifth external review; reproduced by reading.
+const norm=s=>String(s||'').trim().toLowerCase();
+
+function setView(v){VIEW=v;$('list').classList.toggle('on',v==='list');
+  $('code').classList.toggle('on',v==='code');
+  // the graph's bar is hidden in list view — it used to float above the list and
+  // cover the first rows and part of the search box
+  $('topbar').classList.toggle('on',v==='graph');
+  for(const[id,k]of[['vList','list'],['vGraph','graph'],['vCode','code'],
+                    ['gList','list'],['gGraph','graph'],['gCode','code'],
+                    ['cList','list'],['cGraph','graph'],['cCode','code']])
+    $(id)&&$(id).setAttribute('aria-pressed',String(v===k));
+  if(v==='code')loadCodeGraphs();
+  if(v==='graph'){resize();fit();alpha=Math.max(alpha,.35);}}
+
+// Code tab: hosted graphify exports, pushed from the repos by their commit
+// hooks. The list is fetched on every entry (a new repo can appear any time);
+// the iframe src only changes when the selection does, so re-entering the tab
+// never reloads a graph you were mid-exploration in.
+async function loadCodeGraphs(){
+  let d;try{const r=await fetch('/graph/api/codegraphs');if(!r.ok)throw 0;d=await r.json();}
+  catch(e){toast('code graphs unavailable',1);return;}
+  const sel=$('codeSel'),cur=sel.value;sel.innerHTML='';
+  if(!d.graphs.length){$('codeUpd').textContent='none pushed yet — commit in a graphified repo';return;}
+  for(const g of d.graphs){const o=document.createElement('option');o.value=g.name;o.textContent=g.name;sel.appendChild(o);}
+  sel.value=d.graphs.some(g=>g.name===cur)?cur:d.graphs[0].name;
+  const pick=()=>{const g=d.graphs.find(x=>x.name===sel.value);const src='/graph/codegraph/'+sel.value;
+    if($('codeFrame').getAttribute('src')!==src)$('codeFrame').setAttribute('src',src);
+    $('codeUpd').textContent=g?('updated '+new Date(g.updated*1000).toLocaleString()):'';};
+  sel.onchange=pick;pick();}
+
+function setSort(s){sort=s;for(const[id,k]of[['sRel','rel'],['sUpd','upd'],['sTitle','title']])
+  $(id).setAttribute('aria-pressed',String(sort===k));renderList();}
+
+// Local, instant, on every keystroke — matches title/summary/tags so typing feels
+// live. The RANKED server result (same engine as brief) lands a moment later and
+// replaces it; until then the local pass keeps the list from going blank.
+function localMatch(n,q){if(!q)return true;
+  return (n.title||'').toLowerCase().includes(q)
+      || (n.summary||'').toLowerCase().includes(q)
+      || (n.tags||[]).some(t=>String(t).toLowerCase().includes(q));}
+
+function listRows(){
+  let rows=NODES.filter(n=>(!lProj||n.project===lProj)&&(!lType||n.type===lType));
+  if(lq){
+    if(ranked&&ranked.q===lq){
+      // A ranked result REORDERS; it must never delete. Until 2026-08-03 this
+      // kept only the ranked ids, so when the engine returned nothing the list
+      // went blank — the owner typed "internation" and got "Nothing matches" while
+      // a node titled "Bakery international launch" was sitting right there
+      // and the local substring pass had already found it. The engine's own
+      // blind spot is fixed too (prefix matching, librarian/context.py), but
+      // the union is the structural guard: whatever either pass finds, shows.
+      const ord=new Map(ranked.ids.map((id,i)=>[id,i]));
+      rows=rows.filter(n=>ord.has(n.id)||localMatch(n,lq));
+      if(sort==='rel'){const r=n=>ord.has(n.id)?ord.get(n.id):1e6;
+        rows.sort((a,b)=>r(a)-r(b)||String(b.updated_at||'').localeCompare(String(a.updated_at||'')));}}
+    else rows=rows.filter(n=>localMatch(n,lq));
+  }
+  if(sort==='upd')rows.sort((a,b)=>String(b.updated_at||'').localeCompare(String(a.updated_at||'')));
+  else if(sort==='title')rows.sort((a,b)=>(a.title||'').localeCompare(b.title||''));
+  return rows;}
+
+function renderList(){const box=$('lRows');const rows=listRows();
+  if(!rows.length){box.innerHTML='<div class="lempty">'+(lq?'Nothing matches “'+esc(lq)+'”.':'No nodes.')+'</div>';return;}
+  const frag=document.createDocumentFragment();
+  for(const n of rows){
+    const el=document.createElement('div');el.className='lrow'+((n.status==='retired'||n.status==='superseded')?' dim':'');
+    el.tabIndex=0;el.setAttribute('role','button');
+    el.innerHTML='<div class="bar" style="background:'+nodeColor(n)+'"></div>'
+      +'<div class="mid"><div class="t">'+esc(n.title)+(n.canonical?' <span class="pill">canonical</span>':'')+'</div>'
+      +(n.summary?'<div class="s">'+esc(n.summary)+'</div>':'')
+      +'<div class="meta"><span class="pill">'+esc(n.type||'')+'</span><span class="pill">'+esc(n.project||'—')+'</span>'
+      +((n.status&&n.status!=='active')?'<span class="pill">'+esc(n.status)+'</span>':'')+'</div></div>'
+      +'<div class="when">'+esc(n.updated_at||'')+'</div>';
+    // Report opens made FROM a search. This is the signal a relevance threshold
+    // cannot give: a wrong node still scores 4-7, so only "did you open anything"
+    // separates a find from a plausible miss (the staged semantic-retrieval decision,
+    // amended 2026-08-04). Fire-and-forget — never block opening a node.
+    const go=()=>{
+      if(lq){const rank=rows.indexOf(n)+1;
+        api('/graph/api/search/open',{method:'POST',
+          body:JSON.stringify({query:lq,id:n.id,rank})}).catch(()=>{});}
+      setFocus(n.id,depth);openNode(n.id);};
+    el.onclick=go;el.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();go();}};
+    frag.appendChild(el);}
+  box.innerHTML='';box.appendChild(frag);box.scrollTop=0;}
+
+function buildListFilters(){const box=$('lFilters');box.innerHTML='';
+  const mk=(label,active,fn)=>{const c=document.createElement('div');c.className='chip'+(active?'':'');
+    c.tabIndex=0;c.setAttribute('role','button');c.setAttribute('aria-pressed',String(!!active));
+    if(!active&&(lProj||lType))c.classList.add('off');
+    c.innerHTML='<span class="nm">'+esc(label)+'</span>';
+    c.onclick=fn;c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fn();}};box.appendChild(c);};
+  mk('All',!lProj&&!lType,()=>{lProj=null;lType=null;buildListFilters();renderList();});
+  const pc=counts('project');
+  for(const p of PROJECTS){if(!pc[p])continue;
+    mk(p+' ('+pc[p]+')',lProj===p,()=>{lProj=lProj===p?null:p;lType=null;buildListFilters();renderList();});}}
+
+// Ranked search, debounced. Falls back to the local match on any failure — a
+// search box that empties itself on a hiccup is worse than a rougher result.
+let lqT=null;
+async function runSearch(q){const my=++seq;
+  if(!q){ranked=null;if(sort==='rel')setSort('upd');else renderList();return;}
+  try{const r=await api('/graph/api/search?q='+encodeURIComponent(q));
+    if(my!==seq)return;                          // a newer keystroke won
+    if(!r.ok)throw 0;
+    const d=await r.json();
+    ranked={q:norm(q),ids:(d.hits||[]).map(h=>h.id)};
+    if(sort!=='rel'){sort='rel';for(const[id,k]of[['sRel','rel'],['sUpd','upd'],['sTitle','title']])
+      $(id).setAttribute('aria-pressed',String(sort===k));}
+  }catch(e){ranked=null;}
+  if(my===seq)renderList();}
+
+$('lq').addEventListener('input',e=>{lq=norm(e.target.value);
+  renderList();                                   // instant, local
+  clearTimeout(lqT);lqT=setTimeout(()=>runSearch(lq),180);});
+$('vList').onclick=()=>setView('list');$('vGraph').onclick=()=>setView('graph');
+$('gList').onclick=()=>setView('list');$('gGraph').onclick=()=>setView('graph');$('gCode').onclick=()=>setView('code');
+$('vCode').onclick=()=>setView('code');
+$('cList').onclick=()=>setView('list');$('cGraph').onclick=()=>setView('graph');$('cCode').onclick=()=>setView('code');
+$('sRel').onclick=()=>setSort('rel');$('sUpd').onclick=()=>setSort('upd');$('sTitle').onclick=()=>setSort('title');
+$('lNew').onclick=()=>$('newBtn').click();
+addEventListener('keydown',e=>{
+  if(e.key==='/'&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='TEXTAREA'){
+    e.preventDefault();setView('list');$('lq').focus();}
+  if(e.key==='Escape'&&VIEW==='list'&&document.activeElement===$('lq')){$('lq').value='';lq='';ranked=null;renderList();}});
+
+// ---------- theme reactivity ----------
+new MutationObserver(()=>{buildLegend();}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>buildLegend());
+
+// ---------- boot / auth ----------
+async function reload(){const r=await api('/graph/api/graph');if(r.status===401){$('loginO').classList.add('on');return false;}
+  const d=await r.json();$('loginO').classList.remove('on');NODES=d.nodes;
+  PROJECTS=[...(d.projects||[])];if(d.types&&d.types.length)TYPES=d.types;   // live vocab from the corpus registry; no '—' option — project is required (node.schema v1.7)
+  buildEdges();initPos();for(let i=0;i<(reduce?400:260);i++)tick();resize();fit();buildLegend();
+  buildListFilters();renderList();buildFocusBar();
+  if(!started){started=true;requestAnimationFrame(frame);}return true;}
+async function doLogin(){const m=$('loginMsg');m.className='status bad';m.textContent='Signing in…';
+  let r;try{r=await api('/graph/api/login',{method:'POST',body:JSON.stringify({password:$('pw').value})});}
+  catch(err){m.textContent='Network error: '+err.message;return;}
+  if(r.ok){const ok=await reload();if(!ok)m.textContent='Signed in, but the session did not stick — check you are on https:// and cookies are allowed.';}
+  else{const d=await r.json().catch(()=>({}));m.textContent=d.error||('Login failed ('+r.status+')');}}
+$('loginForm').addEventListener('submit',e=>{e.preventDefault();doLogin();});
+resize();reload();
+</script>
+</body>
+</html>

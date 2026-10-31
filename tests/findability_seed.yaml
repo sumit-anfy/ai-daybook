@@ -1,0 +1,113 @@
+# Findability seed bank — held-out stranger questions over the EXAMPLE corpus.
+#
+# Can a person who has forgotten a node's wording still reach it? Twenty live
+# nodes, two queries each, written from the body alone without reusing the
+# node's title, summary, tags or `asks`:
+#
+#   stranger  a 6-12 word everyday question about what the node is mainly for
+#   short     a 2-5 word phrase typed in a hurry
+#
+# librarian/findability.py runs this bank weekly inside the HTTP service and
+# writes the counts to a log node; tests/retrieval_report.py prints it on demand.
+
+findability:
+- node: okf_20260902_064500_d002
+  type: decision
+  project: bakery
+  stranger: Until what hour can a coffee shop still put in tomorrow's request?
+  short: latest time to request bread
+- node: okf_20260716_201500_d003
+  type: decision
+  project: bakery
+  stranger: How do we work out what a coffee shop pays per item?
+  short: café price formula
+- node: okf_20260718_110000_d004
+  type: decision
+  project: garden
+  stranger: Is it fine to leave the earth unturned and just pile compost?
+  short: leave soil unturned
+- node: okf_20260706_113000_d005
+  type: decision
+  project: global-os
+  stranger: Why shouldn't my chores and reminders be written inside the knowledge base?
+  short: chores outside notes
+- node: okf_20260720_054500_c001
+  type: note
+  project: bakery
+  stranger: The dark heavy loaves keep caving in when I cut the top
+  short: loaf caving in
+- node: okf_20260801_190000_c002
+  type: note
+  project: garden
+  stranger: What keeps the slimy pests off the leafy greens at night?
+  short: slimy pests greens
+- node: okf_20260722_210000_c003
+  type: note
+  project: global-os
+  stranger: How does the lookup decide which pages to show me first?
+  short: lookup ranking explained
+- node: okf_20260725_220000_c004
+  type: note
+  project: personal
+  stranger: How do I stay sharp when my alarm goes off before dawn?
+  short: before-dawn alarm routine
+- node: okf_20260711_120000_e001
+  type: reference
+  project: bakery
+  stranger: How do recipes express water relative to the amount of flour?
+  short: water to flour ratio
+- node: okf_20260720_080000_9001
+  type: playbook
+  project: bakery
+  stranger: What do I do at midday with the requests from coffee shops?
+  short: midday request handling
+- node: okf_20260707_090000_9002
+  type: playbook
+  project: global-os
+  stranger: What should I report back when a chat with the assistant ends?
+  short: end of chat report
+- node: okf_20260803_180000_9003
+  type: playbook
+  project: garden
+  stranger: At the start of each month, which seeds should I buy?
+  short: monthly seed shopping
+- node: okf_20260723_090000_8001
+  type: pattern
+  project: global-os
+  stranger: Can I trust a green result when the check found nothing?
+  short: empty check passed
+- node: okf_20260717_090000_8003
+  type: pattern
+  project: bakery
+  stranger: Why not just charge whatever the other shop down the road charges?
+  short: copying rival prices
+- node: okf_20260715_060000_7001
+  type: log
+  project: bakery
+  stranger: When did someone last repair or service the big baking machine?
+  short: baking machine repairs
+- node: okf_20260810_150000_7002
+  type: log
+  project: bakery
+  stranger: How is the move to buying from the local grain miller going?
+  short: local miller move
+- node: okf_20260731_170000_6001
+  type: record
+  project: bakery
+  stranger: What percentage of the business does each founder hold right now?
+  short: founder ownership split
+- node: okf_20260812_120000_6002
+  type: record
+  project: garden
+  stranger: What did the lab say about the earth on my patch?
+  short: earth lab results
+- node: okf_20260710_083000_b002
+  type: project
+  project: bakery
+  stranger: How many coffee shops do we deliver to every morning by van?
+  short: morning van deliveries
+- node: okf_20260712_160000_b003
+  type: project
+  project: garden
+  stranger: What is grown on my rented patch and how is it arranged?
+  short: rented patch arrangement

@@ -1,0 +1,188 @@
+# Retrieval benchmark — a fixed query set over the EXAMPLE corpus (examples/corpus).
+#
+# Measures top-1 / top-5 retrieval against (query, expected-node) pairs, and the
+# intent classifier on its own. test_benchmark_floor holds the ranking floors
+# (it runs only with the semantic layer installed); test_intent_misroute_ceiling
+# caps classifier misroutes. `python tests/retrieval_report.py` prints the full
+# picture.
+#
+# About a third of the queries avoid the target's own words (note: paraphrase):
+# those measure what the embedding layer adds over word matching.
+#
+# Entry shape:
+#   query:    what a person would type
+#   expected: the node id a correct retrieval ranks at or near the top
+#   intent:   current_ruling | project_state | procedure | record | history |
+#             open_question | reference — or a LIST of acceptable labels, where
+#             null means abstaining is fine
+#   note:     optional; "paraphrase" marks a query in other words than the node's
+#   also_accept: optional further ids that answer the question as well
+
+benchmark:
+# ── current rulings ─────────────────────────────────────────────────────────
+- query: what time do cafés have to order by
+  expected: okf_20260902_064500_d002
+  intent: [current_ruling, null]
+- query: can a café still order for tomorrow after lunch
+  expected: okf_20260902_064500_d002
+  intent: current_ruling
+  note: paraphrase
+- query: should we match the other bakery's prices
+  expected: okf_20260716_201500_d003
+  intent: current_ruling
+  also_accept: [okf_20260717_090000_8003]
+- query: what is the rule for pricing bread sold to cafés
+  expected: okf_20260716_201500_d003
+  intent: current_ruling
+- query: should I dig over the vegetable beds this winter
+  expected: okf_20260718_110000_d004
+  intent: current_ruling
+  note: paraphrase
+- query: can I keep my to-do list inside the notes
+  expected: okf_20260706_113000_d005
+  intent: current_ruling
+- query: is it allowed to edit the markdown files by hand
+  expected: okf_20260706_100000_b001
+  intent: current_ruling
+- query: should a test pass when there is nothing to test
+  expected: okf_20260723_090000_8001
+  intent: current_ruling
+- query: can the assistant delete notes by itself
+  expected: okf_20260707_101500_7a10
+  intent: current_ruling
+- query: should I copy what competitors charge
+  expected: okf_20260717_090000_8003
+  intent: current_ruling
+  also_accept: [okf_20260716_201500_d003]
+# ── procedures ──────────────────────────────────────────────────────────────
+- query: how do I process the café orders each day
+  expected: okf_20260720_080000_9001
+  intent: procedure
+- query: the steps for turning orders into tomorrow's bake sheet
+  expected: okf_20260720_080000_9001
+  intent: procedure
+- query: how should I end a working session
+  expected: okf_20260707_090000_9002
+  intent: procedure
+- query: how do I wrap up a chat when nothing worth saving came out of it
+  expected: okf_20260707_090000_9002
+  intent: procedure
+  note: paraphrase
+- query: how do I decide what to sow each month
+  expected: okf_20260803_180000_9003
+  intent: procedure
+- query: how to scale a dough recipe by flour weight
+  expected: okf_20260711_120000_e001
+  intent: procedure
+# ── records ─────────────────────────────────────────────────────────────────
+- query: who owns how much of the bakery
+  expected: okf_20260731_170000_6001
+  intent: record
+- query: how much of the company does Sam have
+  expected: okf_20260731_170000_6001
+  intent: record
+- query: the soil test figures for the plot
+  expected: okf_20260812_120000_6002
+  intent: record
+- query: what is the soil acidity on the allotment
+  expected: okf_20260812_120000_6002
+  intent: [record, null]
+  note: paraphrase
+- query: the spreadsheet with flour prices
+  expected: okf_20260715_140000_f002
+  intent: record
+# ── history ─────────────────────────────────────────────────────────────────
+- query: why did we move the order deadline earlier
+  expected: okf_20260902_070000_a004
+  intent: history
+  also_accept: [okf_20260902_064500_d002]
+- query: what went wrong with the late café orders in August
+  expected: okf_20260902_070000_a004
+  intent: history
+- query: which session worked out the wholesale prices
+  expected: okf_20260716_190000_a001
+  intent: history
+- query: how did we end up charging cost times three
+  expected: okf_20260716_190000_a001
+  intent: history
+  also_accept: [okf_20260716_201500_d003]
+- query: what happened in the first setup of the knowledge base
+  expected: okf_20260706_143000_a003
+  intent: history
+- query: the session where the allotment beds were marked out
+  expected: okf_20260718_100000_a002
+  intent: history
+- query: what was the order deadline before it moved to noon
+  expected: okf_20260902_070000_a004
+  intent: history
+  also_accept: [okf_20260902_064500_d002]
+# ── project state ───────────────────────────────────────────────────────────
+- query: the current state of the café delivery business
+  expected: okf_20260710_083000_b002
+  intent: project_state
+- query: what is actually built in the note system so far
+  expected: okf_20260706_100000_b001
+  intent: project_state
+- query: the state of the veg plot this year
+  expected: okf_20260712_160000_b003
+  intent: project_state
+# ── open questions ──────────────────────────────────────────────────────────
+- query: are we still changing flour supplier
+  expected: okf_20260810_150000_7002
+  intent: [open_question, null]
+- query: is putting the server on a VPS still open
+  expected: okf_20260706_100000_b001
+  intent: open_question
+- query: has the pastry labour question been decided yet
+  expected: okf_20260716_190000_a001
+  intent: open_question
+# ── reference ───────────────────────────────────────────────────────────────
+- query: which frontmatter fields are legal on a note
+  expected: okf_20260706_090000_0f01
+  intent: reference
+- query: which folder does each note type file under
+  expected: okf_20260706_090500_0f02
+  intent: reference
+- query: the definition of hydration in bread recipes
+  expected: okf_20260711_120000_e001
+  intent: reference
+- query: which tools does the knowledge server expose
+  expected: okf_20260707_101500_7a10
+  intent: reference
+# ── unlabelled natural questions ────────────────────────────────────────────
+- query: why does my rye bread sink in the oven
+  expected: okf_20260720_054500_c001
+  intent: null
+- query: dough falling flat on hot days
+  expected: okf_20260720_054500_c001
+  intent: null
+  note: paraphrase
+- query: something keeps eating my young cabbages
+  expected: okf_20260801_190000_c002
+  intent: null
+  note: paraphrase
+- query: coping with 4am starts at the bakery
+  expected: okf_20260725_220000_c004
+  intent: null
+- query: tired and making mistakes after several dawn bakes in a row
+  expected: okf_20260725_220000_c004
+  intent: null
+  note: paraphrase
+- query: when was the oven last serviced
+  expected: okf_20260715_060000_7001
+  intent: null
+- query: does search send my text to an AI service
+  expected: okf_20260722_210000_c003
+  intent: null
+  note: paraphrase
+- query: remembering what I read in books
+  expected: okf_20260805_213000_c005
+  intent: null
+- query: stop admin chores from breaking up the working day
+  expected: okf_20260806_070000_8002
+  intent: null
+  note: paraphrase
+- query: teach search that two different phrases mean the same thing
+  expected: okf_20260708_093000_a11a
+  intent: null
+  note: paraphrase

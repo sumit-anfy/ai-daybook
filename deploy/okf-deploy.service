@@ -1,0 +1,12 @@
+[Unit]
+Description=OKF — pull code from GitHub and restart if it changed
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/okf/OKF/deploy/okf-deploy.sh
+# Runs as root: it restarts services. The script drops to `okf` for every git
+# command, because git as root leaves root-owned files that block the Librarian's
+# next write (see deploy/README.md).
+User=root

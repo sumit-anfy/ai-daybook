@@ -1,0 +1,26 @@
+# systemd unit for the OKF MCP server (HTTP mode).
+# Install: sudo cp deploy/okf.service /etc/systemd/system/ && sudo systemctl enable --now okf
+# Edit the paths/token below for the VPS before installing.
+[Unit]
+Description=OKF MCP server (Librarian over HTTP)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=okf
+WorkingDirectory=/home/okf/OKF
+ExecStart=/home/okf/OKF/.venv/bin/python /home/okf/OKF/server.py
+Restart=on-failure
+RestartSec=3
+Environment=OKF_TRANSPORT=http
+Environment=OKF_HOST=127.0.0.1
+Environment=OKF_PORT=8765
+Environment=OKF_GIT_COMMIT=1
+Environment=OKF_GIT_PUSH=1
+Environment=OKF_GIT_PUSH_ASYNC=1
+Environment=OKF_ROOT=/home/okf/OKF-corpus
+# Put the real token in an env file kept out of git:
+EnvironmentFile=/home/okf/okf.env
+
+[Install]
+WantedBy=multi-user.target
