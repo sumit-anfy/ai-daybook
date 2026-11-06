@@ -18,6 +18,10 @@ The name and the file format come from Google's
 [Open Knowledge Format](https://github.com/GoogleCloudPlatform/open-knowledge-format),
 also "OKF". This is a separate project, not affiliated with Google. See [Credits](#credits).
 
+**Status:** shared as a reference implementation, as is. I can't offer support, so
+issues and pull requests are off. Ideas are welcome in Discussions, though I may not
+reply to all of them. MIT-licensed, so fork it and make it yours.
+
 ## The note design: three layers
 
 Every note (a *node*) has three layers, read in this order:
