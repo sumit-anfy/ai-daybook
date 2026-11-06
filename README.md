@@ -1,4 +1,6 @@
-# Open Knowledge Fabric (OKF)
+# AI Daybook
+
+An AI memory engine inspired by Google's Open Knowledge Format.
 
 A personal knowledge base that an AI assistant reads and writes through one MCP
 server. The notes are plain markdown files with YAML frontmatter, in a git repo
@@ -14,9 +16,10 @@ embedding model (`bge-small`), so your text never leaves the box.
 Built by Sumit for his own notes, and run daily against several hundred of them.
 This repo has the code and a fictional example corpus; no real notes are included.
 
-The name and the file format come from Google's
+The file format is inspired by Google's
 [Open Knowledge Format](https://github.com/GoogleCloudPlatform/open-knowledge-format),
-also "OKF". This is a separate project, not affiliated with Google. See [Credits](#credits).
+also "OKF". This project was first named after it, which is why the code still says
+`OKF` and `okf_`. It is a separate project, not affiliated with Google. See [Credits](#credits).
 
 **Status:** shared as a reference implementation, as is. I can't offer support, so
 issues and pull requests are off. Ideas are welcome in Discussions, though I may not
@@ -71,8 +74,8 @@ superseded notes out and tells you history exists.
 You need Python 3.11 or 3.12, and git.
 
 ```bash
-git clone https://github.com/sumit-anfy/open-knowledge-fabric.git
-cd open-knowledge-fabric
+git clone https://github.com/sumit-anfy/ai-daybook.git
+cd ai-daybook
 python3.11 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m librarian.validate examples/corpus     # OK — 0 error(s)
@@ -99,8 +102,8 @@ Developer → Edit Config), with absolute paths, then restart Claude Desktop:
 {
   "mcpServers": {
     "okf": {
-      "command": "/absolute/path/to/open-knowledge-fabric/.venv/bin/python",
-      "args": ["/absolute/path/to/open-knowledge-fabric/server.py"],
+      "command": "/absolute/path/to/ai-daybook/.venv/bin/python",
+      "args": ["/absolute/path/to/ai-daybook/server.py"],
       "env": { "OKF_ROOT": "/Users/you/okf-demo" }
     }
   }
@@ -124,7 +127,7 @@ mode on purpose.
 Start from the two schema notes, in a git repo of its own:
 
 ```bash
-OKF_CODE=$PWD                   # run from the open-knowledge-fabric folder
+OKF_CODE=$PWD                   # run from the ai-daybook folder
 mkdir ~/my-corpus && cp -r examples/corpus/schemas ~/my-corpus/
 cd ~/my-corpus
 git init -b main
@@ -268,7 +271,7 @@ layer is for.
 ## Credits
 
 - **[Google's Open Knowledge Format](https://github.com/GoogleCloudPlatform/open-knowledge-format)**,
-  this project's namesake. Knowledge as cross-linked markdown files with YAML
+  this project's inspiration, and where the code's `OKF` name comes from. Knowledge as cross-linked markdown files with YAML
   frontmatter, versioned in git, comes from there. Google's OKF is a format, and it
   deliberately leaves storage, serving and search open; this project is one answer
   to those for a single owner. It has also drifted from the spec: notes use their

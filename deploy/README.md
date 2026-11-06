@@ -28,7 +28,7 @@ sudo apt update && sudo apt install -y git python3.11 python3.11-venv caddy
 
 ```bash
 sudo -iu okf
-git clone https://github.com/sumit-anfy/open-knowledge-fabric.git ~/OKF
+git clone https://github.com/sumit-anfy/ai-daybook.git ~/OKF
 cd ~/OKF && python3.11 -m venv .venv
 .venv/bin/pip install -r requirements-dev.txt   # includes pytest, which the deploy gate runs
 ```
