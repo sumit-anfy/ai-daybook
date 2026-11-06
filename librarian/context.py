@@ -40,6 +40,7 @@ except ImportError:
 
 _WORD = re.compile(r"[a-z][a-z0-9-]{2,}")
 
+# Measured on the author's private corpus; not reproducible from the example corpus.
 # How much a term found only in a node's BODY counts, relative to one in its
 # summary. This interacts with the 1.5 relevance floor to decide which body words
 # are findable at all, so it was MEASURED over the live corpus (285 live nodes)
@@ -81,6 +82,7 @@ def lex_floor(total: int) -> float:
 # MEASURED on the 57-question dev set, 310 live nodes, 2026-08-06 (top-1 /
 # top-5 / recall@15 / paraphrase-subset top-5 of 12). Lexical-only baseline
 # with the doorway fix: 67% / 75% / 82% / 3.
+# Measured on the author's private corpus; not reproducible from the example corpus.
 #
 #   weight    0.4      0.6      0.8      1.0      1.25     1.5
 #   top-1     68       67-68    70-72    72       68       68
@@ -104,7 +106,9 @@ SEM_TOPK = 10
 # fixed ten admits a shrinking fraction of the corpus; this admits the larger
 # of the fixed floor and a fraction of the live count (25 at 490). Measured on
 # both corpus states: the vanished answer returns, nothing else moves.
+# Measured on the author's private corpus; not reproducible from the example corpus.
 SEM_TOPK_FRAC = 0.05
+# Measured on the author's private corpus; not reproducible from the example corpus.
 # RAISED 5 → 8 on 2026-10-14, by the first instrument that could see it. The
 # August sweep (above) was flat because the benchmark's queries share words
 # with their targets. The findability bank's stranger questions do not, by
@@ -134,6 +138,7 @@ LEX_REF = 8.0
 #   excerpt keeps this much of the opening (the node's own framing) and spends
 #   the rest of body_chars on the matching sections instead of more opening.
 #
+# Measured on the author's private corpus; not reproducible from the example corpus.
 # MEASURED 2026-10-13 on a read-only clone (550 live nodes, 6,048 chunks): the
 # 67-entry benchmark (top-1/top-5/r@15, adjudicated) and the deep set
 # (tests/deep_benchmark.yaml — 40 passages starting past char 4,000 of their
@@ -165,6 +170,7 @@ HEAD_CHARS = 600
 # keyword rules — no LLM in the read path (the deterministic-read-path decision's ethos; the scheduled-runtime gate decision's no-key-on-the-
 # hot-path property). The calling LLM reranks the shortlist itself; this makes
 # the shortlist worth reranking.
+# Measured on the author's private corpus; not reproducible from the example corpus.
 #
 # STRUCTURAL RULE, inherited from the reorder-never-delete pattern: priors REORDER,
 # they never gate. The relevance floor is applied to the RAW score; the prior
@@ -173,6 +179,7 @@ HEAD_CHARS = 600
 # honest caveat, measured 2026-08-07: the pack's LIMIT re-introduces a gate at
 # the pack boundary — a lost prior can push a correct node out of the returned
 # top-N even though it stays in the candidate pool.)
+# Measured on the author's private corpus; not reproducible from the example corpus.
 #
 # MODAL CUES STAY — measured, 2026-08-07. The precision-first proposal (remove
 # "can we"/"should i" etc. as sufficient evidence; abstain without concept
@@ -187,12 +194,14 @@ HEAD_CHARS = 600
 # (verified live). The regression gate is the misroute CEILING in
 # test_intent_misroute_ceiling: cue edits must not add misroutes; abstention
 # on a labeled query is free.
+# Measured on the author's private corpus; not reproducible from the example corpus.
 _INTENT_CUES = [
     # order matters: first match wins; more specific phrasings first. The order
     # and two cues below were corrected by MEASUREMENT, not intuition: v1 put
     # record before project_state ("how much ... actually built" routed to
     # record), and sent "which session shipped X" to reference off the word
     # "which" while the query literally said "session".
+    # Measured on the author's private corpus; not reproducible from the example corpus.
     ("procedure",      ("how do i ", "how to ", "what has to pass", "the steps",
                         "the procedure", "checklist", "playbook for", "how should i ")),
     ("project_state",  ("actually run", "as actually", "actually built", "actually in",
@@ -238,6 +247,7 @@ _TYPE_PRIORS = {
     # questions skew toward "what did we do / the session where...", whose
     # correct answers ARE sessions. A prior that cannot tell which case it is
     # in must not bet.
+    # Measured on the author's private corpus; not reproducible from the example corpus.
     None:             {},
 }
 
@@ -257,6 +267,7 @@ _TYPE_PRIORS = {
 # Deliberately not a general grammar: one intent had a doorway problem, one
 # intent gets a combination rule. Generalise only if a second intent measurably
 # shows the same failure (earned complexity — the rule-diet decision).
+# Measured on the author's private corpus; not reproducible from the example corpus.
 _RULING_SUBJECTS = ("ruling", "policy", "decided", "decide", "decision",
                     "allowed", "allow", "accepted", "accept", "rejected",
                     "reject", "prohibited", "permitted", "governs", "stance")
@@ -361,6 +372,7 @@ def _index(live):
     measured against the live corpus, not inferred. The corpus exists to answer
     "what do we know about X" and the knowledge is in the bodies; a search that
     reads only the labels on the boxes is a catalogue, not a brain.
+    Measured on the author's private corpus; not reproducible from the example corpus.
     """
     fp = _fingerprint(live)
     cached = _INDEX.get("live")
@@ -401,6 +413,7 @@ def _index(live):
 # The registry node itself explains each line (scope, why, a positive and a
 # negative example); the engine reads only phrase + adds. Cached on the same
 # fingerprint as the index, so it costs one scan per corpus change.
+# Measured on the author's private corpus; not reproducible from the example corpus.
 _ALIASES: dict = {}
 _ALIAS_KEY = "RETRIEVAL_ALIASES"
 
@@ -699,6 +712,7 @@ def assemble_context(nodes, by_id, query, root, *, limit=8, body_chars=2400,
     # relative ordering, not the cosine magnitude; normalising makes the blend
     # scale-free, so the strongest semantic match competes at SEM_WEIGHT of the
     # strongest lexical match, whatever raw numbers either produced.
+    # Measured on the author's private corpus; not reproducible from the example corpus.
     intent, intent_signals = classify_intent_ex(query)
     prior = _TYPE_PRIORS.get(intent, _TYPE_PRIORS[None])
     # The lexical normaliser has an ABSOLUTE floor: on a query where the best
@@ -707,6 +721,7 @@ def assemble_context(nodes, by_id, query, root, *, limit=8, body_chars=2400,
     # rank-1 match capped at SEM_WEIGHT — measured: the file-pointer decision at semantic rank 2 of
     # 310 was crowded out of the top 15 by mid-lexical stacking. Below LEX_REF
     # points, lexical evidence is not allowed to claim full confidence.
+    # Measured on the author's private corpus; not reproducible from the example corpus.
     max_raw = max(max((d["raw"] for d in cand.values()), default=0.0), LEX_REF)
     max_sem = max((max(0.0, c - SEM_BASE) for c in sem.values()), default=0.0) or 1.0
     for d in cand.values():

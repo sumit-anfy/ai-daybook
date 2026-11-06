@@ -18,11 +18,13 @@ live corpus, that is unusable: **median 17, p90 31, 67% over twelve** — within
 rule-bearing nodes nearly all share tags. Capping it truncated 67–87% of clusters, which
 would have hidden candidates rather than ranking them. An IDF-scored version at a high
 threshold still gave median 11.
+Measured on the author's private corpus; not reproducible from the example corpus.
 
 The question is not "what is nearby" but **"what already governs this domain"** — which is
 precisely what the backlog-reconciliation playbook assumes the reader already knows. So the set is: **canonical decisions
 and playbooks in the same project that share a topic.** Measured at **median 12, p90 15,
 max 17** — and stable, because it does not grow every time a note is filed.
+Measured on the author's private corpus; not reproducible from the example corpus.
 
 ## Warn only, and the asymmetry that sets the bar
 
@@ -48,6 +50,7 @@ except ImportError:
     from librarian.audit import _tags, _tokens
 
 # p90 of the measured distribution, so truncation is rare and reported when it happens.
+# Measured on the author's private corpus; not reproducible from the example corpus.
 DEFAULT_CAP = 15
 
 # Types whose writes state a rule that could already exist. A session/note/log records

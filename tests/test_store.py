@@ -869,7 +869,8 @@ def test_work_state_refused_outside_log(root):
     """Scoped to log ON PURPOSE: sessions/notes use these words as vocabulary —
     the text-only alternative measured 80% false positives on exactly that.
     The write path refuses ERROR findings at write time, so the wrong write
-    never lands (class-1 enforcement, not an audit flag)."""
+    never lands (class-1 enforcement, not an audit flag).
+    Measured on the author's private corpus; not reproducible from the example corpus."""
     r = store.create_node(root, project="global-os", type="note", title="Note with a gap in its title",
                           summary="s " * 15)
     with pytest.raises(store.StoreError) as e:
@@ -889,7 +890,8 @@ def test_work_state_enum_enforced(root):
 
 def test_superseded_in_part_is_a_date_not_a_link(root):
     """Chosen on measurement: of 29 live partial-supersession cases, only 6 named
-    a target node — a link would have fitted a fifth of the subjects."""
+    a target node — a link would have fitted a fifth of the subjects.
+    Measured on the author's private corpus; not reproducible from the example corpus."""
     from datetime import date as _date
     r = store.create_node(root, project="global-os", type="decision", title="Partly corrected ruling",
                           summary="s " * 15)
@@ -1218,6 +1220,7 @@ def test_layer2_skips_updates_that_cannot_make_anything_false(root):
 def test_layer2_cap_holds_the_backtested_recall(root):
     # cap=12 was chosen because it preserved 12/13 recall on the 2026-07-28 ground
     # truth while cap=8 dropped it to 85%. Lock the constant against silent tuning.
+    # Measured on the author's private corpus; not reproducible from the example corpus.
     from librarian import cluster
     assert cluster.DEFAULT_CAP == 12
     a = store.create_node(root, project="global-os", type="note", title="Hub", summary="s " * 20)
@@ -1277,6 +1280,7 @@ def test_completeness_covers_pattern_and_playbook_but_not_decision(root):
     '## Decisions locked' is making a pointer list whatever its type. Measured before
     widening: 0 of 23 patterns and 0 of 7 playbooks used a watched section, so this
     closes the forgotten-type hole rather than working a backlog.
+    Measured on the author's private corpus; not reproducible from the example corpus.
 
     `decision` stays out on purpose and is pinned here: it is the only unscanned type
     that DOES use watched sections, because a decision node is where a ruling is FILED.

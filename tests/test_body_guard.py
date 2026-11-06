@@ -100,6 +100,7 @@ def test_a_modest_rewrite_now_NEEDS_the_flag(node):
     text passed silently — measured, not theorised. That compromise existed only
     because `body` carried both intents; now that `body_append` carries the append
     intent, every use of `body` means "replace", and the floor is zero.
+    Measured on the author's private corpus; not reproducible from the example corpus.
     """
     root, nid = node
     kept = LONG[:int(len(LONG) * 0.75)]          # 75% — comfortably past the old floor

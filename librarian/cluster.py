@@ -22,6 +22,7 @@ nothing about those six changed. The write that created the staleness was the ne
 So the question handed back is deliberately reversed: **"what does this node make FALSE?"**
 
 ## How the cluster is picked — and what was measured and REJECTED
+Measured on the author's private corpus; not reproducible from the example corpus.
 
 Backtested against ground truth from the 2026-07-28 content audit (now Layer 4): five
 real writes and the thirteen nodes they were found to have made false.
@@ -45,6 +46,7 @@ must be capped. Selection, no; ordering, yes.
 **Known ceiling: ~69% at create.** The remaining misses are nodes the author never
 referenced — which is precisely why they went stale. Layer 2 is a large improvement on
 the zero that ran before it, not a guarantee; Layer 4 (the content audit) stays the backstop (the five-layer audit decision).
+Measured on the author's private corpus; not reproducible from the example corpus.
 
 ## Warn only
 
@@ -66,6 +68,7 @@ except ImportError:
 
 # Holds full backtest recall (12/13); cap=8 drops it to 85%. Only 11% of active nodes
 # have more declared neighbours than this, so it truncates rarely.
+# Measured on the author's private corpus; not reproducible from the example corpus.
 DEFAULT_CAP = 12
 
 # Fields whose change can make another node false. A pure `relates_to` backlink or an
@@ -78,6 +81,7 @@ def declared_neighbours(fm: dict, node_id: str | None, nodes: list, by_id: dict)
 
     At CREATE there are no inbound edges yet (nothing points at a node that did not
     exist), so this is effectively outbound-only and recall is the lower 69% figure.
+    Measured on the author's private corpus; not reproducible from the example corpus.
     """
     out = {r for r in (fm.get("relates_to") or []) if isinstance(r, str)}
     if node_id:

@@ -8,6 +8,7 @@ after the pair form was measured unfireable, and on 2026-08-06 the owner ruled
 phrased in a person's own words, avoiding the target's vocabulary, ranked the
 right node #1 in 0 of 8) rather than waiting for the miss log to accumulate.
 The eval sample now VALIDATES this build instead of justifying it.
+Measured on the author's private corpus; not reproducible from the example corpus.
 
 WHAT IT IS. bge-small-en-v1.5 int8-quantised via fastembed/ONNX — a real
 transformer encoder, no torch, ~34 MB on disk, CPU-only. The model TIER was
@@ -24,6 +25,7 @@ no swap, measured 2026-08-06) and they FAILED the measurement; bge-small is the
 smallest model that passed, and it fits: ONNX runtime + int8 weights cost
 ~150-250 MB resident. Queries use query_embed (bge's asymmetric instruction
 prefix), documents passage_embed — mixing them up costs recall silently.
+Measured on the author's private corpus; not reproducible from the example corpus.
 
 WHAT IT IS NOT. Not an LLM on the read path (the deterministic-read-path decision/the scheduled-runtime gate decision): encoding is a fixed
 matrix lookup — deterministic, offline, key-free. Same input, same vector,
@@ -58,6 +60,7 @@ MODEL_NAME = os.environ.get("OKF_EMB_MODEL", "BAAI/bge-small-en-v1.5")
 # scales linearly with this number. 8 keeps that buffer under ~100 MB for a
 # few extra seconds of wall clock on a full re-embed — the right trade on a
 # 961 MB box, and invisible on any larger one.
+# Measured on the author's server; not reproducible here.
 EMB_BATCH = int(os.environ.get("OKF_EMB_BATCH", "8"))
 
 # process-lifetime state: "model" is None (untried) / False (unavailable) /
@@ -159,6 +162,7 @@ def _save_disk(mem: dict) -> None:
 # A node with no vector at all is simply absent from the semantic layer until
 # its turn. Tests and scripts (no warm) keep the inline path: a measurement
 # must see exact vectors.
+# Measured on the author's private corpus; not reproducible from the example corpus.
 NODE_INLINE_MAX = int(os.environ.get("OKF_NODE_INLINE_MAX", "32"))
 
 
@@ -294,6 +298,7 @@ def _query_vector(model, query):
 # words. Every substantive heading-delimited chunk (librarian/sections.py) now
 # gets its own vector, and the ranking reads a node's best chunk beside its
 # node vector.
+# Measured on the author's private corpus; not reproducible from the example corpus.
 #
 # CACHE. Content-addressed: {hash of the embedded text: vector}, in a file
 # beside the node cache (so the deploy gate's OKF_EMB_CACHE moves both). A
@@ -309,6 +314,7 @@ def _query_vector(model, query):
 # thread. A write that changes one node embeds its handful inline. Two
 # services share the cache file, so the background embed takes a cross-process
 # flock: the second process waits, then finds the work done on disk.
+# Measured on the author's private corpus; not reproducible from the example corpus.
 CHUNK_INLINE_MAX = int(os.environ.get("OKF_CHUNK_INLINE_MAX", "64"))
 _CHUNK_LOCK = threading.Lock()
 
@@ -324,7 +330,8 @@ def _keys(n) -> list:
     vector beside the section chunks. Folded into the one node vector, a
     summary's bullets dilute each other: measured on all 555 live nodes, a
     deep passage reached the default pack 16 of 40 that way and 23 of 40 with
-    every bullet and ask matched on its own (librarian/summary.py)."""
+    every bullet and ask matched on its own (librarian/summary.py).
+    Measured on the author's private corpus; not reproducible from the example corpus."""
     try:
         import summary
     except ImportError:
@@ -339,7 +346,8 @@ def _chunk_plan(live) -> list:
     an int index for a body section, "a<k>"/"b<k>" for an ask or a summary
     bullet (_keys). Cached on a hash of what it is built from: rebuilding it
     (chunking and hashing ~4 MB of bodies) cost ~130ms a query on the Mac,
-    measured — four times the rest of the search together."""
+    measured — four times the rest of the search together.
+    Measured on the author's private corpus; not reproducible from the example corpus."""
     fp = hashlib.blake2b(digest_size=16)
     for n in live:
         for part in (n.id, str(n.fm.get("title", "")), n.body or "",

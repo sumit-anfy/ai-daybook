@@ -53,6 +53,7 @@ _WATCHED = ("decisions locked", "principles surfaced", "rulings",
 # is making a pointer list whatever its type is. Measured before widening: 0 of 23
 # patterns and 0 of 7 playbooks use one today, so this fires on nothing and exists to
 # close the forgotten-type hole rather than to work a backlog.
+# Measured on the author's private corpus; not reproducible from the example corpus.
 #
 # `decision` stays OUT deliberately, and it is the only unscanned type that DOES use
 # watched sections (3 nodes: a rubric note, the rulings-ownership decision, the review-queue note). A decision node is where a ruling is
@@ -115,6 +116,7 @@ def find_stray_rulings(body: str) -> list[Unfiled]:
     - matching the word "ruling" anywhere produced 15, at roughly one-third precision.
     Requiring the marker to OPEN the line gives 4 hits at ~75% precision, which is a
     warning volume worth reading.
+    Measured on the author's private corpus; not reproducible from the example corpus.
 
     **Known limit, by construction:** this catches rules the author LABELLED. An
     unlabelled rule in narrative prose — house style is a bold lead-in, which is

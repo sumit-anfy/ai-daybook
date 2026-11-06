@@ -60,6 +60,7 @@ KNOWN_FIELDS = {"id", "type", "title", "summary", "status", "maturity", "canonic
                 # adoption on 532 nodes: stranger-question findability 9-11 of 20 →
                 # 14-16 of 20, benchmark 51/61/66 → 56/66/67, no regression
                 # (the retrieval-measurement record and the 2026-09-29 session).
+                # Measured on the author's private corpus; not reproducible from the example corpus.
                 "asks",
                 # WORK-STATE, promoted out of prose 2026-08-04. `log` nodes
                 # carried their lifecycle in ENGLISH — "OPEN WORK" in the title,
@@ -71,6 +72,7 @@ KNOWN_FIELDS = {"id", "type", "title", "summary", "status", "maturity", "canonic
                 # UNRULED node matching twice. 80% false positives is the check that
                 # trains you to ignore it (the fail-loudly rule §3). A field cannot be ambiguous; the
                 # word "gap" always will be.
+                # Measured on the author's private corpus; not reproducible from the example corpus.
                 "work_state",
                 # PARTIAL SUPERSESSION — a DATE, not a link, and the shape changed on
                 # evidence. It was proposed (the false-title handover §3) as a link mirroring
@@ -575,6 +577,7 @@ _BODY_ID_RE = re.compile(r"okf_\d{8}_\d{6}_[0-9a-f]{4}")
 # the ellipsis-only form missed it, and `relates_to` validation could not see it either
 # because it was in the body. Measured before widening — the corpus contains exactly 3
 # non-valid `okf_` tokens and 2 are legitimate templates, so this adds no false positives.
+# Measured on the author's private corpus; not reproducible from the example corpus.
 _TRUNCATED_ID_RE = re.compile(r"okf_\d{8}_(?!\d{6}_[0-9a-f]{4}\b)[^\s`)\]]*")
 
 
@@ -623,6 +626,7 @@ _RATIFIED_SCOPE_NODE = os.environ.get("OKF_RATIFIED_SCOPE_NODE", "")
 # library held 25 — the undercount this comment warned about, arriving from a title
 # convention rather than a letter shape. Both forms count. Found 2026-09-08 when the
 # re-ratification was about to be written against the counter's figure.
+# Measured on the author's private corpus; not reproducible from the example corpus.
 _CASE_TITLE_RE = re.compile(r"^Case\s+(?:[A-Z]+\d*\b|[—–-]\s)", re.I)
 
 

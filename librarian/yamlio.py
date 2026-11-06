@@ -4,6 +4,7 @@ Not a test-only optimisation. `validate.load_corpus` runs on every read, and eve
 re-validates the whole corpus, so frontmatter parsing is the hottest path in the Librarian —
 it sits under `validate_corpus`, `audit_corpus`, `brief`, and both write tools.
 
+Measured on the author's private corpus; not reproducible from the example corpus.
 Measured 2026-07-29 on the 272-node corpus:
 
     pure-python SafeLoader   228.0 ms   for all frontmatter

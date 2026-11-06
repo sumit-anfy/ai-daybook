@@ -11,6 +11,7 @@ body 5,008 chars, p90 13,721, max 142,957; 483 nodes are longer than the
 2,400-char pack excerpt and 335 longer than the 4,000 chars the node embedding
 reads — 53% of all body text was beyond the embedding, and an excerpt showed
 the opening of a node however deep the match sat.
+Measured on the author's private corpus; not reproducible from the example corpus.
 
 WHAT A CHUNK IS. A run of one section's text, at most CHUNK_CHARS long, cut
 at paragraph boundaries where it can be, carrying the heading path above it
@@ -54,6 +55,7 @@ def _sections(body: str) -> list[tuple[str, str, int, int]]:
             # an opening H1 is the node's title restated: the DISPLAY path
             # leaves it out; the full path keeps it, because the encoder was
             # measured with it (dropping it cost two benchmark top-1s)
+            # Measured on the author's private corpus; not reproducible from the example corpus.
             path = " › ".join(t for _, t, title in stack if not title)
             full = " › ".join(t for _, t, _ in stack)
             start = pos

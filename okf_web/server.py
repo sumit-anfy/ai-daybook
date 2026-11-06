@@ -146,6 +146,7 @@ def search(req):
     all an embedding-model load — cannot block the event loop. As `async`,
     the first post-deploy search froze the ENTIRE app for the ~15s model load
     (measured live, 2026-08-07: every surface stuck, not just the search).
+    Measured on the author's server; not reproducible here.
     """
     if not _authed(req):
         return JSONResponse({"error": "auth"}, status_code=401)

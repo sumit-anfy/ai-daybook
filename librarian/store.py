@@ -184,6 +184,7 @@ def _assert_record_immutable(before: dict, after: dict, old_body: str, new_body:
     must be able to carry one. Measured against the two real records: of the two
     post-creation edits, the pure append passes and the one that REWROTE a provenance line
     is refused, which is the correct bite.
+    Measured on the author's private corpus; not reproducible from the example corpus.
 
     Override `allow_record_amendment=True` lands in the record, per the house style of
     `allow_unlink` / `allow_unfiled_rulings` — an override belongs in the record, not in
@@ -310,6 +311,7 @@ def _prepare_unsupersession(by_id: dict, target_id: str, today: str):
 # is GitHub's SSH auth on a 1-vCPU box (already halved by connection reuse; it will
 # not get much better). The caller is made to wait on a network round trip that
 # tells it nothing it can act on. Deferring it takes a write to ~165ms.
+# Measured on the author's server; not reproducible here.
 #
 # This does NOT widen the window where a node exists on one machine only: if a push
 # fails, the commit was already stranded until the next write or the wedge detector
@@ -820,6 +822,7 @@ def _update_node(root: Path, node_id: str, changes: dict, body,
     # silently. `body_append` now carries the append intent on its own, so every
     # use of `body` genuinely means "I intend to replace" — and the floor drops to
     # zero. ANY non-containing replacement needs the flag (2026-08-04).
+    # Measured on the author's private corpus; not reproducible from the example corpus.
     #
     # The flag is still not required 100% of the time, which is what keeps the gated-deletion decision
     # satisfied: appending does not use `body` at all, and growing a body by

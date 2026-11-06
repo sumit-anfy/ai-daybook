@@ -1,5 +1,6 @@
 """Fixtures for the background push (librarian.store, 2026-08-02).
 
+Measured on the author's server; not reproducible here.
 Deferring `git push` off the write path took a write from ~965ms to ~165ms — push
 was 83% of it. The risk it introduces is not a wider stranding window (a failed
 push already stranded the commit) but a LATER-NOTICED one, so the two safeguards

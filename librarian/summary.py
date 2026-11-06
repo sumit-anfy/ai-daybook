@@ -25,6 +25,7 @@ bullet matched on its own (embed._chunk_plan); folded into the one node
 vector, the bullets moved it to 16. 199 of the 555 needed more than 8 bullets:
 those nodes hold more than one idea, and the warning says so — except a
 session, which records a whole sitting (SPLIT_EXEMPT).
+Measured on the author's private corpus; not reproducible from the example corpus.
 """
 from __future__ import annotations
 

@@ -246,7 +246,8 @@ def test_stray_scan_known_limit_unlabelled_rules():
     is NOT detected, and must not be — flagging every bold lead-in measured 375 uncited
     hits on the live corpus, nearly all list items. That class belongs to the Layer-4
     content audit. If this test starts failing, someone widened the heuristic; read
-    find_stray_rulings' docstring before 'fixing' it."""
+    find_stray_rulings' docstring before 'fixing' it.
+    Measured on the author's private corpus; not reproducible from the example corpus."""
     from librarian.completeness import find_stray_rulings
     body = ("## Internal notes for leadership\n"
             "- **Exact delivery times land very differently on different cafés.** "

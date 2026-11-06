@@ -158,6 +158,7 @@ def compute_destructive_writes(root, since: str | None = None):
     Cheap enough for the read path: ONE `git log --numstat` over all history
     measures at ~0.1s on the live corpus, because the cost is one process rather
     than one per revision.
+    Measured on the author's private corpus; not reproducible from the example corpus.
 
     `--diff-filter=M` restricts this to MODIFICATIONS. A deleted node is not a
     silent loss — delete_node is gated four ways and leaves an obvious commit —
@@ -538,6 +539,7 @@ def compute_suggestions(active, existing, dismissed, curated, limit=14):
 # and 24% in its top 25, where the word channel has 0%. On all links the word
 # channel is better (41% vs 36% in the top 10), so vectors are a SECOND channel,
 # not a replacement, and only for the pairs the first cannot see.
+# Measured on the author's private corpus; not reproducible from the example corpus.
 #
 # The owner ruled a TRIAL, not a feature: up to VECTOR_SLOTS such pairs ride in the
 # suggestion list, labelled, and his accept/dismiss rulings score it. A

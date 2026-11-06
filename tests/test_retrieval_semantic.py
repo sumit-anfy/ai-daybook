@@ -11,6 +11,7 @@ deliberately holds no nodes — where the encoder itself cannot.
 Measured at build time (2026-08-06, 57 questions, 310 live nodes):
   lexical (doorway fix)   top-1 67%  top-5 75%  r@15 82%  paraphrase top-5 3/12
   hybrid  (shipped)       top-1 72%  top-5 86%  r@15 91%  paraphrase top-5 7/12
+Measured on the author's private corpus; not reproducible from the example corpus.
 """
 import sys
 from pathlib import Path
@@ -488,7 +489,8 @@ def test_intent_misroute_ceiling():
     set: 7 misroutes (6 pre-existing and non-modal, plus the accepted checker
     overfire, marked in the YAML). Ceiling 9 = measured + headroom, so cue
     edits that add misroutes fail here while ordinary benchmark growth does
-    not; the strict floor catches a classifier collapse."""
+    not; the strict floor catches a classifier collapse.
+    Measured on the author's private corpus; not reproducible from the example corpus."""
     import yaml
     bench = yaml.safe_load((Path(__file__).resolve().parent /
                             "retrieval_benchmark.yaml").read_text())["benchmark"]
@@ -535,7 +537,8 @@ def test_node_vectors_embed_in_bounded_batches(tmp_path, monkeypatch):
     it OOM-killed the first VPS embed. The bounded batch size must actually
     reach the encoder; dropping the kwarg re-breaks the box silently, because
     similarities() fail-softs the crash into {} and retrieval just goes
-    quietly lexical."""
+    quietly lexical.
+    Measured on the author's private corpus; not reproducible from the example corpus."""
     np = pytest.importorskip("numpy")
     seen = {}
 
@@ -667,7 +670,8 @@ def test_alias_unions_pools_and_keeps_every_original_candidate(monkeypatch):
     results (the coverage multiplier shrinks when the query grows), so this
     test pins the structural contract: every candidate the original words found
     is still a candidate, and the alias words admit the target the original
-    words could not reach."""
+    words could not reach.
+    Measured on the author's private corpus; not reproducible from the example corpus."""
     context._ALIASES.clear()
     thesaurus = N("thes", "Retrieval aliases — the corpus-owned thesaurus", body=ALIAS_NODE_BODY)
     target = N("target", "Deletion is agent-callable behind four gates", tags=("delete", "deletion"))
@@ -711,7 +715,8 @@ def test_asks_are_indexed_and_fingerprinted(monkeypatch):
     indexed with the summary so the word layer has question-shaped text to match.
     The adoption measurement on 532 nodes: stranger findability 9–11 → 14–16 of 20,
     benchmark 51/61/66 → 56/66/67, no regression. The fingerprint must change when
-    asks change, or the cached index would keep serving the old vocabulary."""
+    asks change, or the cached index would keep serving the old vocabulary.
+    Measured on the author's private corpus; not reproducible from the example corpus."""
     target = N("target", "Backtest is not live edge — pilot small before sizing up")
     target.fm["asks"] = ["should we bet big on something that worked on old data"]
     nodes, by_id = corpus(target, *filler())

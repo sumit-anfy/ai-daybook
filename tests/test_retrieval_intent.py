@@ -10,6 +10,7 @@ ignored).
 Measured at build time (2026-08-05, 57 questions, 291-live-node corpus):
   baseline (no priors)  top-1 59%  top-5 73%
   shipped (v2 priors)   top-1 68%  top-5 75%   — no per-intent regression
+Measured on the author's private corpus; not reproducible from the example corpus.
 """
 import sys
 from pathlib import Path
@@ -88,6 +89,7 @@ def test_benchmark_floor():
     # revision on a semantic-off box while saying nothing about the code under
     # test, so a semantic-off run skips with the number on record instead of
     # pretending the floor was calibrated for it.
+    # Measured on the author's private corpus; not reproducible from the example corpus.
     from librarian import embed
     if not embed.available():
         pytest.skip("semantic layer unavailable — the floor is calibrated for the hybrid "

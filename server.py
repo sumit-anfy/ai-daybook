@@ -261,7 +261,8 @@ def audit_corpus(limit: int = 14) -> dict:
       real-query samples, and `semantic: false` incidence. Surface suspected
       MCP queries as candidates to investigate; never quote an MCP "miss
       rate" (unknown is not a miss). A low relevance score does NOT mean a
-      failed search — measured and rejected as a signal."""
+      failed search — measured and rejected as a signal.
+      Measured on the author's private corpus; not reproducible from the example corpus."""
     with store._repo_lock(CORPUS_ROOT, shared=True):
         nodes, by_id, *_ = validate.load_corpus(CORPUS_ROOT)
     return {**audit.audit(nodes, by_id, CORPUS_ROOT, limit=limit),
@@ -308,6 +309,7 @@ def brief(query: str, limit: int = 15) -> dict:
     pays a node for every rare word it contains, so a long word list ranks the
     longest session summary above the ruling it summarises (measured: a
     nine-word keyword list put a session at 16.8 over the decision at 8.7).
+    Measured on the author's private corpus; not reproducible from the example corpus.
     The word "session" is an intent cue that promotes sessions — leave it
     out unless sessions are what you want. Each seed carries its `tags`: the
     field the ranking weights most and the vocabulary the corpus actually
@@ -385,6 +387,7 @@ def create_node(type: str, title: str, project: str, body: str = "",
     is outranked by its neighbours. Measured both times on every live node
     before adoption: four lifted held-out stranger findability by about half,
     and eight lifted it again, 47 → 56 of 80 in the default pack.
+    Measured on the author's private corpus; not reproducible from the example corpus.
     `summary` (2026-10-22) is written as BULLETS, one "- " line each — the
     node's current state, which search reads first:
       - bullet 1: one sentence on what this node is (its one-line description)
@@ -402,6 +405,7 @@ def create_node(type: str, title: str, project: str, body: str = "",
     from that one: it records a whole sitting. Measured on all 555
     live nodes before adoption: a deep passage reached the default pack 13 →
     23 of 40.
+    Measured on the author's private corpus; not reproducible from the example corpus.
     `project` is REQUIRED (node.schema v1.7, 2026-09-06): every node has exactly
     one home, and it is one of the type registry's PROJECT_REGISTRY values —
     the life areas the registry lists, or global-os (the capability
